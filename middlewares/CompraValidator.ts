@@ -3,8 +3,9 @@ import Joi from "joi";
 module.exports = async (req: any, res: any, next: any) => {
   try {
     const schema = Joi.object({
-      nome: Joi.string().required(),
-      telefone: Joi.string().required().length(14),
+      data: Joi.date().required(),
+      observacao: Joi.string(),
+      valor: Joi.number().required()
     });
 
     await schema.validateAsync(req.body);

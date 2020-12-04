@@ -4,7 +4,6 @@ module.exports = async (req: any, res: any, next: any) => {
   try {
     const schema = Joi.object({
       nome: Joi.string().required(),
-      telefone: Joi.string().required().length(14),
     });
 
     await schema.validateAsync(req.body);

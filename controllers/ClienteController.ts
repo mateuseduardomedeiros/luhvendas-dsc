@@ -2,23 +2,26 @@ import { Cliente } from "../models/Cliente";
 import { AbstractController } from "./AbstractController";
 
 const validarCamposCliente = require("../middlewares/ClienteValidator");
-const auth = require('../middlewares/auth')
+const auth = require("../middlewares/auth");
 
 export class ClienteController extends AbstractController {
   protected prefix: string = "/cliente";
 
   get() {
     return async (req: any, res: any, next: any) => {
-      auth(req, res);
+      auth(req, res, next);
       return res.status(200).json(await Cliente.find());
     };
   }
 
   create() {
     return async (req: any, res: any, next: any) => {
-
+      await auth(req, res, next);
       await validarCamposCliente(req, res, next);
-
+      let buscaCliente: Cliente | undefined = await Cliente.findOne({nome:req.body.nome.trim()});
+      if(buscaCliente) {
+        return res.status(403).json({msg: "Cliente já cadastrado!"})
+      }
       try {
         let cliente: Cliente = new Cliente();
         cliente.nome = req.body.nome;
@@ -33,6 +36,7 @@ export class ClienteController extends AbstractController {
 
   show() {
     return async (req: any, res: any, next: any) => {
+      await auth(req, res, next);
       try {
         let cliente: Cliente | undefined = await Cliente.findOne({
           id: req.params.id,
@@ -50,6 +54,7 @@ export class ClienteController extends AbstractController {
 
   update() {
     return async (req: any, res: any, next: any) => {
+      await auth(req, res, next);
       try {
         let cliente: Cliente | undefined = await Cliente.findOne({
           id: req.params.id,

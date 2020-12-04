@@ -1,19 +1,22 @@
 import { Compra } from "../models/Compra";
 import { AbstractController } from "./AbstractController";
 
-
+const validarCamposCompra = require("../middlewares/CompraValidator");
+const auth = require("../middlewares/auth");
 export class CompraController extends AbstractController {
   protected prefix: string = "/compra";
 
   get() {
     return async (req: any, res: any, next: any) => {
+      await auth(req, res, next);
       return res.status(200).json(await Compra.find());
     };
   }
 
   create() {
     return async (req: any, res: any, next: any) => {
-      //await clienteValidateFields();
+      await auth(req, res, next);
+      await validarCamposCompra(req, res, next);
       try {
         let compra: Compra = new Compra();
         compra.data = req.body.data;
@@ -29,6 +32,7 @@ export class CompraController extends AbstractController {
 
   show() {
     return async (req: any, res: any, next: any) => {
+      await auth(req, res, next);
       try {
         let compra: Compra | undefined = await Compra.findOne({
           id: req.params.id,
@@ -46,6 +50,8 @@ export class CompraController extends AbstractController {
 
   update() {
     return async (req: any, res: any, next: any) => {
+      await auth(req, res, next);
+      await validarCamposCompra(req, res, next)
       try {
         let compra: Compra | undefined = await Compra.findOne({
           id: req.params.id,
@@ -66,17 +72,28 @@ export class CompraController extends AbstractController {
       }
     };
   }
-  // remove() {
-  //   return (req: any, res: any) => {
-  //     return res.status(200).json({ msg: "DELETE usuario" });
-  //   };
-  // }
+  remove() {
+    return async (req: any, res: any, next: any) => {
+      await auth(req, res, next)
+      try {
+        let compra: Compra | undefined = await Compra.findOne({id: req.params.id});
+        if(compra){
+          await compra.remove();
+          return res.status(200).json({msg: "Registro de compra removido com sucesso!"})
+        } else {
+          return res.status(404).json({msg: "Registro de compra não encontrado!"})
+        }
+      } catch (error) {
+        return res.status(500).json({msg: 'Erro interno!'})
+      }
+    };
+  }
 
   registrarRotas() {
     this.forRoute("/").get(this.get());
     this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
     this.forRoute("/:id").put(this.update());
-    //this.forRoute("/:id").delete(this.remove());
+    this.forRoute("/:id").delete(this.remove());
   }
 }
