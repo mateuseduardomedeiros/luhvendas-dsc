@@ -1,19 +1,18 @@
 import { Compra } from "../models/Compra";
 import { AbstractController } from "./AbstractController";
 
-//const clienteValidateFields = require("../middlewares/ClienteValidator");
 
 export class CompraController extends AbstractController {
   protected prefix: string = "/compra";
 
   get() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       return res.status(200).json(await Compra.find());
     };
   }
 
   create() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       //await clienteValidateFields();
       try {
         let compra: Compra = new Compra();
@@ -29,7 +28,7 @@ export class CompraController extends AbstractController {
   }
 
   show() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let compra: Compra | undefined = await Compra.findOne({
           id: req.params.id,
@@ -46,7 +45,7 @@ export class CompraController extends AbstractController {
   }
 
   update() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let compra: Compra | undefined = await Compra.findOne({
           id: req.params.id,

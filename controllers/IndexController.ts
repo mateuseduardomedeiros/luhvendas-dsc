@@ -4,7 +4,7 @@ export class IndexController extends AbstractController {
   protected prefix: string = "/";
 
   hello() {
-    return (req: any, res: any) => {
+    return (req: any, res: any, next: any) => {
       res.status(200).json({ msg: "LuhVendas API v1" });
     };
   }

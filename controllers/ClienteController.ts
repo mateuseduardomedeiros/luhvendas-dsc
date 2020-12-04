@@ -1,20 +1,24 @@
 import { Cliente } from "../models/Cliente";
 import { AbstractController } from "./AbstractController";
 
-//const clienteValidateFields = require("../middlewares/ClienteValidator");
+const validarCamposCliente = require("../middlewares/ClienteValidator");
+const auth = require('../middlewares/auth')
 
 export class ClienteController extends AbstractController {
   protected prefix: string = "/cliente";
 
   get() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
+      auth(req, res);
       return res.status(200).json(await Cliente.find());
     };
   }
 
   create() {
-    return async (req: any, res: any) => {
-      //await clienteValidateFields();
+    return async (req: any, res: any, next: any) => {
+
+      await validarCamposCliente(req, res, next);
+
       try {
         let cliente: Cliente = new Cliente();
         cliente.nome = req.body.nome;
@@ -28,7 +32,7 @@ export class ClienteController extends AbstractController {
   }
 
   show() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let cliente: Cliente | undefined = await Cliente.findOne({
           id: req.params.id,
@@ -45,7 +49,7 @@ export class ClienteController extends AbstractController {
   }
 
   update() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let cliente: Cliente | undefined = await Cliente.findOne({
           id: req.params.id,
@@ -61,7 +65,7 @@ export class ClienteController extends AbstractController {
           return res.status(404).json({ msg: "Cliente não encontrado!" });
         }
       } catch (error) {
-        return res.status(500).json({msg: "Erro interno!"})
+        return res.status(500).json({ msg: "Erro interno!" });
       }
     };
   }

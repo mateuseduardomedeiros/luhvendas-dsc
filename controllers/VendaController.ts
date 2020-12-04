@@ -5,13 +5,13 @@ export class VendaController extends AbstractController {
   protected prefix: string = "/venda";
 
   get() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       return res.status(200).json(await Venda.find());
     };
   }
 
   create() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let venda: Venda = new Venda();
         venda.data = req.body.data;
@@ -29,7 +29,7 @@ export class VendaController extends AbstractController {
   }
 
   show() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let venda: Venda | undefined = await Venda.findOne({
           id: req.params.id,
@@ -46,7 +46,7 @@ export class VendaController extends AbstractController {
   }
 
   update() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let venda: Venda | undefined = await Venda.findOne({
           id: req.params.id,

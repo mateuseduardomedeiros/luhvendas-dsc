@@ -6,6 +6,7 @@ import { IndexController } from "../IndexController";
 import { SessaoController } from "../SessaoController";
 import { TipoPagamentoController } from "../TipoPagamentoController";
 import { UsuarioController } from "../UsuarioController";
+import { VendaController } from "../VendaController";
 import ControllerTypes from "./ControllerTypes";
 
 const ControllerContainer = new Container();
@@ -16,5 +17,6 @@ ControllerContainer.bind<IController>(ControllerTypes.Controller).to(UsuarioCont
 ControllerContainer.bind<IController>(ControllerTypes.Controller).to(SessaoController);
 ControllerContainer.bind<IController>(ControllerTypes.Controller).to(CompraController);
 ControllerContainer.bind<IController>(ControllerTypes.Controller).to(ClienteController);
+ControllerContainer.bind<IController>(ControllerTypes.Controller).to(VendaController);
 
 export default ControllerContainer;

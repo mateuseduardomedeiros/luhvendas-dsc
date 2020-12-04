@@ -7,7 +7,7 @@ export class SessaoController extends AbstractController {
   protected prefix: string = "/login";
 
   login() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       let usuario: Usuario | undefined = await Usuario.findOne({
         login: req.body.login,
       });

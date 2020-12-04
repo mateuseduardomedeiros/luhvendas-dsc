@@ -5,13 +5,13 @@ export class UsuarioController extends AbstractController {
   protected prefix: string = "/usuario";
 
   get() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       return res.status(200).json(await Usuario.find());
     };
   }
 
   create() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let usuario: Usuario = new Usuario();
         usuario.nome = req.body.nome;
@@ -29,7 +29,7 @@ export class UsuarioController extends AbstractController {
   }
 
   show() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let usuario: Usuario | undefined = await Usuario.findOne({
           id: req.params.id,
@@ -46,12 +46,12 @@ export class UsuarioController extends AbstractController {
   }
 
   update() {
-    return (req: any, res: any) => {
+    return (req: any, res: any, next: any) => {
       return res.status(200).json({ msg: "PUT usuario" });
     };
   }
   remove() {
-    return (req: any, res: any) => {
+    return (req: any, res: any, next: any) => {
       return res.status(200).json({ msg: "DELETE usuario" });
     };
   }

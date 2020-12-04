@@ -6,7 +6,7 @@ const authConfig = require("../config/auth");
 
 const degub = false;
 
-module.exports = () => async (req: any, res: any, next: any) => {
+module.exports = async (req: any, res: any, next: any) => {
   if (degub && process.env.NODE_ENV === "development") {
     return next();
   }

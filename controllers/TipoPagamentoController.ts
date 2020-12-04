@@ -5,13 +5,13 @@ export class TipoPagamentoController extends AbstractController {
   protected prefix: string = "/tipopagamento";
 
   get() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       return res.status(200).json(await TipoPagamento.find());
     };
   }
 
   create() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let tipopagamento: TipoPagamento = new TipoPagamento();
         tipopagamento.nome = req.body.nome;
@@ -29,7 +29,7 @@ export class TipoPagamentoController extends AbstractController {
   }
 
   show() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let tipopagamento:
           | TipoPagamento
@@ -50,7 +50,7 @@ export class TipoPagamentoController extends AbstractController {
   }
 
   update() {
-    return async (req: any, res: any) => {
+    return async (req: any, res: any, next: any) => {
       try {
         let tipopagamento: TipoPagamento  | undefined = await TipoPagamento.findOne({
           id: req.params.id,
