@@ -1,7 +1,7 @@
 import { AbstractController } from "./AbstractController";
 
 export class IndexController extends AbstractController {
-  protected prefix: string = '/'
+  protected prefix: string = "/";
 
   hello() {
     return (req: any, res: any) => {
@@ -10,6 +10,6 @@ export class IndexController extends AbstractController {
   }
 
   registrarRotas() {
-    this.forRoute('/').get(this.hello());
+    this.forRoute("/").get(this.hello());
   }
 }

@@ -6,7 +6,6 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-var consola = require("consola");
 
 var app = express();
 
@@ -22,7 +21,5 @@ const containers: IController[] = ControllerContainer.getAll<IController>(
 containers.forEach(controller => {
     controller.forApp(app).registrarRotas();
 });
-
-consola.success({ message: "Servidor rodando em: http://localhost:3000" });
 
 module.exports = app;

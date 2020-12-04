@@ -1,17 +1,20 @@
+import { Usuario } from "../models/Usuario";
 import { AbstractController } from "./AbstractController";
 
 export class UsuarioController extends AbstractController {
-
   protected prefix: string = "/usuario";
 
   get() {
-    return (req: any, res: any) => {
-      return res.status(200).json({ msg: "GET usuario" });
+    return async (req: any, res: any) => {
+      return res.status(200).json(await Usuario.find());
     };
   }
 
   create() {
     return (req: any, res: any) => {
+      let usuario: Usuario = new Usuario();
+      usuario.nome = req.body.nome
+      usuario.login = req.body.login;
       return res.status(201).json({ msg: "POST usuario" });
     };
   }
