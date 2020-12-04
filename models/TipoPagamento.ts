@@ -5,17 +5,12 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 
+
 @Entity()
-export class Compra extends BaseEntity {
+export class TipoPagamento extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column()
-  data!: Date;
-
-  @Column()
-  observacao?: string;
-
-  @Column("float")
-  valor!: number;
+  nome!: string;
 }

@@ -55,7 +55,7 @@ export class CompraController extends AbstractController {
           compra.data = req.body.data;
           compra.observacao = req.body.observacao;
           compra.valor = req.body.valor;
-          compra.save();
+          await compra.save();
           return res
             .status(200)
             .json({ msg: "Compra atualizada com sucesso!", compra });

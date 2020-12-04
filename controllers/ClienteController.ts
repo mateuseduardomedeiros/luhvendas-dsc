@@ -53,7 +53,7 @@ export class ClienteController extends AbstractController {
         if (cliente) {
           cliente.nome = req.body.nome;
           cliente.telefone = req.body.telefone;
-          cliente.save();
+          await cliente.save();
           return res
             .status(200)
             .json({ msg: "Cliente atualizado com sucesso!", cliente });
