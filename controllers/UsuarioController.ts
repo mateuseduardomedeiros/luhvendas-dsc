@@ -11,17 +11,37 @@ export class UsuarioController extends AbstractController {
   }
 
   create() {
-    return (req: any, res: any) => {
-      let usuario: Usuario = new Usuario();
-      usuario.nome = req.body.nome
-      usuario.login = req.body.login;
-      return res.status(201).json({ msg: "POST usuario" });
+    return async (req: any, res: any) => {
+      try {
+        let usuario: Usuario = new Usuario();
+        usuario.nome = req.body.nome;
+        usuario.login = req.body.login;
+        usuario.senha = req.body.senha;
+        await usuario.hashSenha();
+        await usuario.save();
+        return res
+          .status(201)
+          .json({ msg: "Usuário cadastrado com sucesso!", usuario });
+      } catch (error) {
+        return;
+      }
     };
   }
 
   show() {
-    return (req: any, res: any) => {
-      return res.status(200).json({ msg: "GET:id usuario" });
+    return async (req: any, res: any) => {
+      try {
+        let usuario: Usuario | undefined = await Usuario.findOne({
+          id: req.params.id,
+        });
+        if (usuario) {
+          return res.status(200).json(usuario);
+        } else {
+          return res.status(404).json({ msg: "Usuario não encontrado!" });
+        }
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!" });
+      }
     };
   }
 
@@ -38,9 +58,9 @@ export class UsuarioController extends AbstractController {
 
   registrarRotas() {
     this.forRoute("/").get(this.get());
-    this.forRoute("/").post(this.create());
+    // this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
-    this.forRoute("/:id").put(this.update());
-    this.forRoute("/:id").delete(this.remove());
+    // this.forRoute("/:id").put(this.update());
+    // this.forRoute("/:id").delete(this.remove());
   }
 }

@@ -6,7 +6,7 @@
   "password": "root",
   "database": "luhvendas",
   "synchronize": true,
-  "logging": true,
+  "logging": false,
   "migrations": ["migrations/**/*.ts"],
   "cli": {
     "migrationsDir": "migrations"
