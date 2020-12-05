@@ -1,6 +1,6 @@
 "use strict";
 
-import Vue from 'vue';
+import Vue from "vue";
 import axios from "axios";
 
 // Full config:  https://github.com/axios/axios#request-config
@@ -9,7 +9,7 @@ import axios from "axios";
 // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 let config = {
-  baseURL: 'http://localhost:3000/v1/'
+  baseURL: "http://localhost:3000/v1/",
   // timeout: 60 * 1000, // Timeout
   // withCredentials: true, // Check cross-site Access-Control
 };
@@ -19,6 +19,10 @@ const _axios = axios.create(config);
 _axios.interceptors.request.use(
   function(config) {
     // Do something before request is sent
+    let token = "";
+    if (typeof localStorage.token != "undefined") token = localStorage.token;
+
+    if (token != "") config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   function(error) {
@@ -46,16 +50,16 @@ Plugin.install = function(Vue, options) {
     axios: {
       get() {
         return _axios;
-      }
+      },
     },
     $axios: {
       get() {
         return _axios;
-      }
+      },
     },
   });
 };
 
-Vue.use(Plugin)
+Vue.use(Plugin);
 
 export default Plugin;

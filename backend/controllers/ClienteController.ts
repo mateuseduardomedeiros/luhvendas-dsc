@@ -10,7 +10,17 @@ export class ClienteController extends AbstractController {
   get() {
     return async (req: any, res: any, next: any) => {
       auth(req, res, next);
-      return res.status(200).json(await Cliente.find());
+      let clientes: Array<Cliente> | undefined = await Cliente.find();
+      let totalPages = 1;
+      if (clientes.length % req.query.per_page == 0) {
+        totalPages = clientes.length / req.query.per_page;
+      } else {
+        totalPages = clientes.length / req.query.per_page + 1;
+      }
+
+      let result = await Cliente.createQueryBuilder().paginate();
+
+      return res.status(200).json({ totalPages, result });
     };
   }
 
@@ -18,9 +28,11 @@ export class ClienteController extends AbstractController {
     return async (req: any, res: any, next: any) => {
       await auth(req, res, next);
       await validarCamposCliente(req, res, next);
-      let buscaCliente: Cliente | undefined = await Cliente.findOne({nome:req.body.nome.trim()});
-      if(buscaCliente) {
-        return res.status(403).json({msg: "Cliente já cadastrado!"})
+      let buscaCliente: Cliente | undefined = await Cliente.findOne({
+        where: { nome: req.body.nome },
+      });
+      if (buscaCliente) {
+        return res.status(403).json({ msg: "Cliente já cadastrado!" });
       }
       try {
         let cliente: Cliente = new Cliente();
@@ -30,7 +42,9 @@ export class ClienteController extends AbstractController {
         return res
           .status(201)
           .json({ msg: "Cliente cadastrado com sucesso!", cliente });
-      } catch (error) {}
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!", error });
+      }
     };
   }
 

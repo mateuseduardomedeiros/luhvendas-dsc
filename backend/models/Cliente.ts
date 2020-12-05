@@ -3,16 +3,14 @@ import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
-  Unique,
 } from "typeorm";
 
 @Entity()
-@Unique(["telefone"])
 export class Cliente extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({name: 'nome'})
   nome?: string;
 
   @Column({ length: 14 }) //(84) 997063979
