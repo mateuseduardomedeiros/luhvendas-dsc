@@ -305,15 +305,17 @@ export default {
       await this.$axios
         .get(`/compra/${item.id}`)
         .then((response) => {
+          console.log(item.valor);
           this.desabilitarBtnDeletar = response.data.length > 0 ? true : false;
           this.tituloModal = "Editar Compra";
           this.itemAtual.data = item.data;
           this.itemAtual.observacao = item.observacao;
-          this.itemAtual.valor = item.valor;
+          this.itemAtual.valor = item.valor.toFixed(2);
+          console.log(this.itemAtual.valor);
           this.itemAtual.id = item.id;
           this.modalItem = true;
         })
-        .catch(() => {
+        .catch((error) => {
           this.$swal({
             toast: true,
             showConfirmButton: false,
