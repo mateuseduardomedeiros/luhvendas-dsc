@@ -9,39 +9,38 @@
     >
       <v-card>
         <v-card-title>
-          <span class="headline">Cadastrar Cliente</span>
+          <span class="headline">{{ tituloModal }}</span>
         </v-card-title>
         <v-card-text>
           <v-container fluid>
             <v-row>
               <v-col cols="12" sm="12" md="6">
                 <v-text-field
-                  label="Nome"
-                  :hint="
-                    `${
-                      itemAtual.nome.length === 0
-                        ? 'Este campo é obrigatório'
-                        : itemAtual.nome.length < 2
-                        ? 'Digite pelo menos 2 caracteres'
-                        : ''
-                    }`
-                  "
-                  v-model="itemAtual.nome"
-                  @keyup.enter="salvarCliente()"
+                  label="Data"
+                  hint="Data da compra"
+                  v-model="itemAtual.data"
+                  v-mask="['##/##/####']"
+                  @keyup.enter="salvarCompra()"
                   autocomplete="off"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="12" md="6">
                 <v-text-field
-                  label="Telefone"
-                  hint="Digite um número de telefone"
-                  v-model="itemAtual.telefone"
+                  label="Valor"
+                  v-money="money"
+                  hint="Digite o valor total das compras"
+                  v-model.lazy="itemAtual.valor"
                   clearable
-                  counter
-                  @keyup.enter="salvarCliente()"
-                  v-mask="['(##) #########']"
+                  @keyup.enter="salvarCompra()"
                   autocomplete="off"
                 ></v-text-field>
+              </v-col>
+              <v-col>
+                <v-textarea
+                  label="Observação"
+                  v-model="itemAtual.observacao"
+                  hint="Digite como foi gasto o dinheiro"
+                ></v-textarea>
               </v-col>
             </v-row>
           </v-container>
@@ -50,7 +49,7 @@
           <v-btn
             color="error"
             text
-            v-if="!novoCliente"
+            v-if="!novaCompra"
             :disabled="desabilitarBtnDeletar"
             @click="deletarItem(itemAtual)"
             >Deletar</v-btn
@@ -60,8 +59,8 @@
           <v-btn
             color="primary"
             text
-            @click="salvarCliente()"
-            :disabled="desabilitarBtnSalvar || itemAtual.nome.trim().length < 2"
+            @click="salvarCompra()"
+            :disabled="desabilitarBtnSalvar || itemAtual.data.trim().length < 2"
             >Salvar</v-btn
           >
         </v-card-actions>
@@ -69,7 +68,7 @@
     </v-dialog>
     <v-card v-if="!(isMobile() && !estadoMenu)">
       <v-card-title style="padding-bottom: 0; ">
-        Clientes
+        Compras
         <v-layout row wrap>
           <v-flex
             xs12
@@ -90,7 +89,6 @@
           </v-flex>
           <v-flex xs12 sm6 :class="`${isMobile() ? 'mx-3' : 'pr-4'} `">
             <v-text-field
-              v-model="pesquisar"
               append-icon="mdi-magnify"
               label="Pesquisar"
               hide-details
@@ -111,11 +109,17 @@
           :page-count="numeroPaginas"
         >
           <!-- eslint-disable-next-line -->
+          <template v-slot:item.valor="{ item }">
+            <span>{{
+              Number(item.valor.toFixed(2)).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })
+            }}</span>
+          </template>
+          <!-- eslint-disable-next-line -->
           <template v-slot:item.action="{ item }">
-            <v-icon class="mr-1" small color="info" @click="abrirCliente(item)">
-              mdi-eye
-            </v-icon>
-            <v-icon class="mr-1" small color="info" @click="abrirCliente(item)">
+            <v-icon class="mr-1" small color="info" @click="abrirCompra(item)">
               mdi-pencil
             </v-icon>
           </template>
@@ -124,7 +128,7 @@
           <v-pagination
             v-model="paginaAtual"
             :length="numeroPaginas"
-            @input="carregarClientes()"
+            @input="carregarCompras()"
           ></v-pagination>
         </div>
       </div>
@@ -134,13 +138,13 @@
 
 <script>
 import { mask } from "vue-the-mask";
+import moment from "moment";
+import { VMoney } from "v-money";
 export default {
-  directives: {
-    mask,
-  },
+  directives: { money: VMoney, mask },
   data() {
     return {
-      carregandoClientes: false,
+      carregandoCompras: false,
       desabilitarBtnDeletar: true,
       desabilitarBtnSalvar: false,
       carregandoItens: false,
@@ -151,17 +155,25 @@ export default {
       tituloModal: "",
       modalItem: false,
       pesquisar: "",
-      novoCliente: false,
+      novaCompra: false,
       itens: [],
       itemAtual: {
-        nome: "",
-        telefone: "",
+        data: "",
+        observacao: "",
+        valor: 0,
         id: "",
       },
-      pesquisar: "",
+      money: {
+        decimal: ",",
+        thousands: ".",
+        prefix: "R$ ",
+        precision: 2,
+        masked: false,
+      },
       cabecalhos: [
-        { text: "Nome", align: "left", value: "nome", sortable: false },
-        { text: "Telefone", value: "telefone", sortable: false },
+        { text: "Data", align: "left", value: "data", sortable: false },
+        { text: "Observação", value: "observacao", sortable: false },
+        { text: "Valor", align: "right", value: "valor", sortable: false },
         { text: "Ação", value: "action", align: "right", sortable: false },
       ],
     };
@@ -171,43 +183,17 @@ export default {
       return this.$store.state.estadoMenu;
     },
   },
-  watch: {
-    pesquisar(val) {
-      this.carregandoItens = true;
-      if (val !== null && val !== undefined && val.length > 0) {
-        this.$axios
-          .post(
-            `cliente/find/?page=${this.paginaAtual}&limit=${this.itensPorPagina}`,
-            { nome: val }
-          )
-          .then((response) => {
-            this.itens = response.data.result.data;
-            this.paginaAtual = response.data.current_page;
-            this.numeroPaginas = response.data.totalPages;
-            this.carregandoItens = false;
-          })
-          .catch((err) => {
-            //this.mostrarToast("Falha ao recuperar itens", "error");
-            this.fecharModal();
-          });
-      } else {
-        this.carregarClientes();
-      }
-    },
-  },
   created() {
-    this.carregarClientes();
+    this.carregarCompras();
   },
   methods: {
-    async carregarClientes() {
-      this.carregandoClientes = true;
+    async carregarCompras() {
+      this.carregandoCompras = true;
       await this.$axios
-        .get(
-          `cliente/?page=${this.paginaAtual}&per_page=${this.itensPorPagina}`
-        )
+        .get(`compra/?page=${this.paginaAtual}&per_page=${this.itensPorPagina}`)
         .then((response) => {
           this.itens = response.data.result.data;
-          this.carregandoClientes = false;
+          this.carregandoCompras = false;
           this.numeroPaginas = parseInt(response.data.totalPages);
         })
         .catch(() => {
@@ -219,32 +205,37 @@ export default {
             position: "top-end",
             icon: "error",
             title: "Falha!",
-            text: "Erro ao carregar Clientes!",
+            text: "Erro ao carregar compras!",
           });
         });
     },
     abrirModal() {
       this.modalItem = true;
-      this.tituloModal = "Cadastrar Cliente";
-      this.novoCliente = true;
+      this.tituloModal = "Cadastrar Compra";
+      this.novaCompra = true;
     },
     fecharModal() {
-      this.carregandoClientes = false;
+      this.carregandoCompras = false;
       this.modalItem = false;
       setTimeout(() => {
-        this.itemAtual.nome = "";
-        this.itemAtual.telefone = "";
+        this.itemAtual.data = "";
+        this.itemAtual.observacao = "";
+        this.itemAtual.valor = null;
         this.itemAtual.id = "";
-        this.novoCliente = false;
+        this.novaCompra = false;
       }, 100);
     },
-    async salvarCliente() {
+    async salvarCompra() {
       this.desabilitarBtnSalvar = true;
-      if (this.novoCliente) {
-        if (this.itemAtual.nome.length > 0) {
+      this.itemAtual.data = moment(this.itemAtual.data).format("YYYY-MM-DD");
+      let aux = String(this.itemAtual.valor);
+      aux = Number(aux.replace("R$ ", "").replace(",", "."));
+      this.itemAtual.valor = aux;
+      if (this.novaCompra) {
+        if (this.itemAtual.data.length > 0) {
           delete this.itemAtual.id;
           await this.$axios
-            .post(`cliente`, { ...this.itemAtual })
+            .post(`compra`, { ...this.itemAtual })
             .then((response) => {
               this.desabilitarBtnSalvar = false;
               this.$swal({
@@ -255,11 +246,10 @@ export default {
                 position: "top-end",
                 icon: "success",
                 title: response.data.msg,
-                text: response.data.cliente.nome,
               });
 
               this.fecharModal();
-              this.carregarClientes();
+              this.carregarCompras();
             })
             .catch((error) => {
               this.desabilitarBtnSalvar = false;
@@ -280,7 +270,7 @@ export default {
         let idItem = this.itemAtual.id;
         delete this.itemAtual.id;
         await this.$axios
-          .put(`cliente/${idItem}`, { ...this.itemAtual })
+          .put(`compra/${idItem}`, { ...this.itemAtual })
           .then((response) => {
             this.desabilitarBtnSalvar = false;
             this.$swal({
@@ -291,37 +281,83 @@ export default {
               position: "top-end",
               icon: "success",
               title: response.data.msg,
-              text: response.data.cliente.nome,
             });
             this.fecharModal();
-            this.carregarClientes();
+            this.carregarCompras();
           })
           .catch((err) => {
             this.desabilitarBtnSalvar = false;
-            this.mostrarToast(
-              err.response.data.error
-                ? err.response.data.error
-                : "Falha ao editar cliente",
-              "error"
-            );
+            this.$swal({
+              toast: true,
+              showConfirmButton: false,
+              timerProgressBar: true,
+              timer: 3000,
+              position: "top-end",
+              icon: "error",
+              title: "Falha!",
+              text: error.response.data.msg,
+            });
             this.itemAtual.id = idItem;
           });
       }
     },
-    async abrirCliente(item) {
+    async abrirCompra(item) {
       await this.$axios
-        .get(`/cliente/${item.id}`)
+        .get(`/compra/${item.id}`)
         .then((response) => {
           this.desabilitarBtnDeletar = response.data.length > 0 ? true : false;
-          this.tituloModal = "Editar Cliente";
-          this.itemAtual.nome = item.nome;
-          this.itemAtual.telefone = item.telefone;
+          this.tituloModal = "Editar Compra";
+          this.itemAtual.data = item.data;
+          this.itemAtual.observacao = item.observacao;
+          this.itemAtual.valor = item.valor;
           this.itemAtual.id = item.id;
           this.modalItem = true;
         })
         .catch(() => {
-          this.mostrarToast("falha", "error");
+          this.$swal({
+            toast: true,
+            showConfirmButton: false,
+            timerProgressBar: true,
+            timer: 3000,
+            position: "top-end",
+            icon: "error",
+            title: "Falha!",
+            text: error.response.data.msg,
+          });
         });
+    },
+    deletarItem(item) {
+      alert("Atenção, esta operação não pode ser desfeita");
+      if (confirm(`Deseja realmente deletar este registro?`)) {
+        this.$axios
+          .delete(`compra/${item.id}`)
+          .then((response) => {
+            this.$swal({
+              toast: true,
+              showConfirmButton: false,
+              timerProgressBar: true,
+              timer: 3000,
+              position: "top-end",
+              icon: "success",
+              title: response.data.msg,
+            });
+            this.fecharModal();
+            this.carregarCompras();
+          })
+          .catch((response) => {
+            this.$swal({
+              toast: true,
+              showConfirmButton: false,
+              timerProgressBar: true,
+              timer: 3000,
+              position: "top-end",
+              icon: "error",
+              title: "Falha!",
+              text: error.response.data.msg,
+            });
+            this.fecharModal();
+          });
+      }
     },
     isMobile() {
       if (

@@ -18,7 +18,28 @@ export class ClienteController extends AbstractController {
         totalPages = clientes.length / req.query.per_page + 1;
       }
 
-      let result = await Cliente.createQueryBuilder().paginate();
+      let result = await Cliente.createQueryBuilder()
+        .orderBy("nome", "ASC")
+        .paginate();
+
+      return res.status(200).json({ totalPages, result });
+    };
+  }
+  getByNome() {
+    return async (req: any, res: any, next: any) => {
+      auth(req, res, next);
+      let clientes: Array<Cliente> | undefined = await Cliente.find();
+      let totalPages = 1;
+      if (clientes.length % req.query.per_page == 0) {
+        totalPages = clientes.length / req.query.per_page;
+      } else {
+        totalPages = clientes.length / req.query.per_page + 1;
+      }
+
+      let result = await Cliente.createQueryBuilder("cliente")
+        .where("cliente.nome like :nome", { nome: `%${req.body.nome}%` })
+        .orderBy("nome", "ASC")
+        .paginate();
 
       return res.status(200).json({ totalPages, result });
     };
@@ -96,6 +117,7 @@ export class ClienteController extends AbstractController {
 
   registrarRotas() {
     this.forRoute("/").get(this.get());
+    this.forRoute("/find").post(this.getByNome());
     this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
     this.forRoute("/:id").put(this.update());

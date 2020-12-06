@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <NavBar v-cloak v-if="!$route.meta.esconderNavbar"></NavBar>
+    <NavBar v-if="!$route.meta.esconderNavbar"></NavBar>
     <v-main>
       <v-container
         fluid

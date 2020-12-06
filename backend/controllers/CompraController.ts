@@ -1,5 +1,6 @@
 import { Compra } from "../models/Compra";
 import { AbstractController } from "./AbstractController";
+import moment from "moment";
 
 const validarCamposCompra = require("../middlewares/CompraValidator");
 const auth = require("../middlewares/auth");
@@ -8,8 +9,24 @@ export class CompraController extends AbstractController {
 
   get() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
-      return res.status(200).json(await Compra.find());
+      auth(req, res, next);
+      let compras: Array<Compra> | undefined = await Compra.find();
+      let totalPages = 1;
+      if (compras.length % req.query.per_page == 0) {
+        totalPages = compras.length / req.query.per_page;
+      } else {
+        totalPages = compras.length / req.query.per_page + 1;
+      }
+
+      let result = await Compra.createQueryBuilder()
+        .orderBy("data", "ASC")
+        .paginate();
+      //format data dd/mm/yyyy
+      result.data.forEach((element: any) => {
+        element.data = moment(element.data).format("DD/MM/YYYY");
+      });
+
+      return res.status(200).json({ totalPages, result });
     };
   }
 
@@ -26,7 +43,9 @@ export class CompraController extends AbstractController {
         return res
           .status(201)
           .json({ msg: "Compra cadastrada com sucesso!", compra });
-      } catch (error) {}
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!", error });
+      }
     };
   }
 
@@ -51,7 +70,7 @@ export class CompraController extends AbstractController {
   update() {
     return async (req: any, res: any, next: any) => {
       await auth(req, res, next);
-      await validarCamposCompra(req, res, next)
+      await validarCamposCompra(req, res, next);
       try {
         let compra: Compra | undefined = await Compra.findOne({
           id: req.params.id,
@@ -74,17 +93,23 @@ export class CompraController extends AbstractController {
   }
   remove() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next)
+      await auth(req, res, next);
       try {
-        let compra: Compra | undefined = await Compra.findOne({id: req.params.id});
-        if(compra){
+        let compra: Compra | undefined = await Compra.findOne({
+          id: req.params.id,
+        });
+        if (compra) {
           await compra.remove();
-          return res.status(200).json({msg: "Registro de compra removido com sucesso!"})
+          return res
+            .status(200)
+            .json({ msg: "Registro de compra removido com sucesso!" });
         } else {
-          return res.status(404).json({msg: "Registro de compra não encontrado!"})
+          return res
+            .status(404)
+            .json({ msg: "Registro de compra não encontrado!" });
         }
       } catch (error) {
-        return res.status(500).json({msg: 'Erro interno!'})
+        return res.status(500).json({ msg: "Erro interno!", error });
       }
     };
   }

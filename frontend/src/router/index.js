@@ -10,7 +10,6 @@ const routes = [
       titulo: "Login",
       esconderNavbar: true,
     },
-
     component: () =>
       import(/* webpackChunkName: "Login" */ "@/views/Login.vue"),
   },
@@ -20,11 +19,8 @@ const routes = [
     meta: {
       titulo: "Home",
     },
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: function() {
-      return import(/* webpackChunkName: "about" */ "@/views/Home.vue");
+      return import(/* webpackChunkName: "Home" */ "@/views/Home.vue");
     },
   },
   {
@@ -33,9 +29,17 @@ const routes = [
     meta: {
       titulo: "Clientes",
     },
-
     component: () =>
-      import(/* webpackChunkName: "Login" */ "@/views/Cliente.vue"),
+      import(/* webpackChunkName: "Clientes" */ "@/views/Cliente.vue"),
+  },
+  {
+    path: "/compras",
+    name: "Compras",
+    meta: {
+      titulo: "Compras",
+    },
+    component: () =>
+      import(/* webpackChunkName: "Compras" */ "@/views/Compra.vue"),
   },
 ];
 

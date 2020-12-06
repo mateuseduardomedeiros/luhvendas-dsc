@@ -3,10 +3,10 @@
     <v-navigation-drawer
       app
       dark
-      :mini-variant="true"
+      :mini-variant="estadoMenu"
       hide-overlay
       permanent
-      :value="true"
+      :value="estadoMenu"
       class="primary"
     >
       <v-list dense nav>
@@ -29,6 +29,11 @@
           <v-list-item-icon>
             <v-icon>mdi-logout</v-icon>
           </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              Sair
+            </v-list-item-title>
+          </v-list-item-content>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -54,16 +59,16 @@ export default {
   components: {},
   data() {
     return {
-      menu: true,
+      menu: false,
       itensMenu: [
-        { rota: "/", icone: "mdi-home", titulo: "Home" },
+        { rota: "/home", icone: "mdi-home", titulo: "Home" },
         { rota: "/clientes", icone: "mdi-account-group", titulo: "Clientes" },
         {
-          rota: "/dependentes",
-          icone: "mdi-human-female-boy",
-          titulo: "Dependentes",
+          rota: "/compras",
+          icone: "mdi-cart",
+          titulo: "Compras",
         },
-        { rota: "/historico", icone: "mdi-history", titulo: "Histórico" },
+        { rota: "/vendas", icone: "mdi-currency-usd", titulo: "Vendas" },
         {
           rota: "/relatorio/diario",
           icone: "mdi-file-chart",
@@ -82,6 +87,11 @@ export default {
     logout() {
       localStorage.clear();
       this.$router.push({ name: "Login" });
+    },
+  },
+  computed: {
+    estadoMenu() {
+      return this.$store.state.estadoMenu;
     },
   },
 };

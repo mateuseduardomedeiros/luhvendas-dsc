@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <NavBar />
+    <!-- <NavBar /> -->
     <v-btn>AA</v-btn>
   </div>
 </template>

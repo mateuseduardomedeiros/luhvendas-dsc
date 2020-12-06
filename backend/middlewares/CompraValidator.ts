@@ -3,12 +3,13 @@ import Joi from "joi";
 module.exports = async (req: any, res: any, next: any) => {
   try {
     const schema = Joi.object({
-      data: Joi.date().required(),
-      observacao: Joi.string(),
+      data: Joi.string().required(),
+      observacao: Joi.string().allow('').optional(),
       valor: Joi.number().required()
     });
 
     await schema.validateAsync(req.body);
+
   } catch (error) {
     return res
       .status(400)

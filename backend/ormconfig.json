@@ -5,6 +5,7 @@
   "username": "postgres",
   "password": "root",
   "database": "luhvendas",
+
   "synchronize": true,
   "logging": false,
   "migrations": ["migrations/**/*.ts"],
