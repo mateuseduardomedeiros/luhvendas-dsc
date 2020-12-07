@@ -8,19 +8,31 @@ export class TipoPagamentoController extends AbstractController {
 
   get() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       return res.status(200).json(await TipoPagamento.find());
     };
   }
 
   create() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       await validarCamposTipoPagamento(req, res, next);
-      
-      let buscaTipoPagamento: TipoPagamento | undefined = await TipoPagamento.findOne({nome:req.body.nome.trim()});
-      if(buscaTipoPagamento) {
-        return res.status(403).json({msg: "Tipo de pagamento já cadastrado!"})
+
+      let buscaTipoPagamento:
+        | TipoPagamento
+        | undefined = await TipoPagamento.findOne({
+        nome: req.body.nome.trim(),
+      });
+      if (buscaTipoPagamento) {
+        return res
+          .status(403)
+          .json({ msg: "Tipo de pagamento já cadastrado!" });
       }
       try {
         let tipopagamento: TipoPagamento = new TipoPagamento();
@@ -38,7 +50,10 @@ export class TipoPagamentoController extends AbstractController {
 
   show() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       try {
         let tipopagamento:
           | TipoPagamento
@@ -60,7 +75,10 @@ export class TipoPagamentoController extends AbstractController {
 
   update() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       await validarCamposTipoPagamento(req, res, next);
       try {
         let tipopagamento:

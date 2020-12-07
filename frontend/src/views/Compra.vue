@@ -46,14 +46,6 @@
           </v-container>
         </v-card-text>
         <v-card-actions>
-          <v-btn
-            color="error"
-            text
-            v-if="!novaCompra"
-            :disabled="desabilitarBtnDeletar"
-            @click="deletarItem(itemAtual)"
-            >Deletar</v-btn
-          >
           <v-spacer></v-spacer>
           <v-btn color="primary" text @click="fecharModal()">Fechar</v-btn>
           <v-btn
@@ -121,6 +113,14 @@
           <template v-slot:item.action="{ item }">
             <v-icon class="mr-1" small color="info" @click="abrirCompra(item)">
               mdi-pencil
+            </v-icon>
+            <v-icon
+              class="mr-1"
+              small
+              color="error"
+              @click="deletarCompra(item)"
+            >
+              mdi-delete
             </v-icon>
           </template>
         </v-data-table>
@@ -227,7 +227,9 @@ export default {
     },
     async salvarCompra() {
       this.desabilitarBtnSalvar = true;
-      this.itemAtual.data = moment(this.itemAtual.data).format("YYYY-MM-DD");
+      console.log(this.itemAtual.data)
+      // this.itemAtual.data = moment(this.itemAtual.data).format("YYYY-MM-DD");
+      console.log(moment(this.itemAtual.data))
       let aux = String(this.itemAtual.valor);
       aux = Number(aux.replace("R$ ", "").replace(",", "."));
       this.itemAtual.valor = aux;
@@ -305,13 +307,11 @@ export default {
       await this.$axios
         .get(`/compra/${item.id}`)
         .then((response) => {
-          console.log(item.valor);
           this.desabilitarBtnDeletar = response.data.length > 0 ? true : false;
           this.tituloModal = "Editar Compra";
           this.itemAtual.data = item.data;
           this.itemAtual.observacao = item.observacao;
           this.itemAtual.valor = item.valor.toFixed(2);
-          console.log(this.itemAtual.valor);
           this.itemAtual.id = item.id;
           this.modalItem = true;
         })
@@ -328,38 +328,49 @@ export default {
           });
         });
     },
-    deletarItem(item) {
-      alert("Atenção, esta operação não pode ser desfeita");
-      if (confirm(`Deseja realmente deletar este registro?`)) {
-        this.$axios
-          .delete(`compra/${item.id}`)
-          .then((response) => {
-            this.$swal({
-              toast: true,
-              showConfirmButton: false,
-              timerProgressBar: true,
-              timer: 3000,
-              position: "top-end",
-              icon: "success",
-              title: response.data.msg,
-            });
-            this.fecharModal();
-            this.carregarCompras();
-          })
-          .catch((response) => {
-            this.$swal({
-              toast: true,
-              showConfirmButton: false,
-              timerProgressBar: true,
-              timer: 3000,
-              position: "top-end",
-              icon: "error",
-              title: "Falha!",
-              text: error.response.data.msg,
-            });
-            this.fecharModal();
-          });
-      }
+    deletarCompra(item) {
+      this.$swal
+        .fire({
+          title: "Tem certeza que deseja deletar esse registro?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#008000",
+          cancelButtonColor: "#d33",
+          cancelButtonText: "Não",
+          confirmButtonText: "Sim",
+        })
+        .then((result) => {
+          if (result.isConfirmed) {
+            this.$axios
+              .delete(`compra/${item.id}`)
+              .then((response) => {
+                this.$swal({
+                  toast: true,
+                  showConfirmButton: false,
+                  timerProgressBar: true,
+                  timer: 3000,
+                  position: "top-end",
+                  icon: "success",
+                  title: response.data.msg,
+                });
+                this.fecharModal();
+                this.carregarCompras();
+              })
+              .catch((response) => {
+                this.$swal({
+                  toast: true,
+                  showConfirmButton: false,
+                  timerProgressBar: true,
+                  timer: 3000,
+                  position: "top-end",
+                  icon: "error",
+                  title: "Falha!",
+                  text: error.response.data.msg,
+                });
+                this.fecharModal();
+              });
+          }
+        });
     },
     isMobile() {
       if (

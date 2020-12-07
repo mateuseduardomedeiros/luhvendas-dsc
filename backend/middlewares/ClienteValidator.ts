@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-module.exports = async (req: any, res: any, next: any) => {
+module.exports = async (req: any, res: any) => {
   try {
     const schema = Joi.object({
       nome: Joi.string().required(),
@@ -9,8 +9,6 @@ module.exports = async (req: any, res: any, next: any) => {
 
     await schema.validateAsync(req.body);
   } catch (error) {
-    return res
-      .status(400)
-      .json({ msg: "Erro de validação!", error: error.message });
+    return error
   }
 };

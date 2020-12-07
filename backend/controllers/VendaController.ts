@@ -1,17 +1,25 @@
 import { Venda } from "../models/Venda";
 import { AbstractController } from "./AbstractController";
-
+const auth = require("../middlewares/auth");
 export class VendaController extends AbstractController {
   protected prefix: string = "/venda";
 
   get() {
     return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       return res.status(200).json(await Venda.find());
     };
   }
 
   create() {
     return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       try {
         let venda: Venda = new Venda();
         venda.data = req.body.data;
@@ -30,6 +38,10 @@ export class VendaController extends AbstractController {
 
   show() {
     return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       try {
         let venda: Venda | undefined = await Venda.findOne({
           id: req.params.id,
@@ -47,6 +59,10 @@ export class VendaController extends AbstractController {
 
   update() {
     return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       try {
         let venda: Venda | undefined = await Venda.findOne({
           id: req.params.id,
@@ -64,9 +80,7 @@ export class VendaController extends AbstractController {
             venda,
           });
         } else {
-          return res
-            .status(404)
-            .json({ msg: "Venda não encontrada!" });
+          return res.status(404).json({ msg: "Venda não encontrada!" });
         }
       } catch (error) {
         return res.status(500).json({ msg: "Erro interno!" });

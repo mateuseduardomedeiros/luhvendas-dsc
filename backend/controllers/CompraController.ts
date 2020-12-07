@@ -9,7 +9,10 @@ export class CompraController extends AbstractController {
 
   get() {
     return async (req: any, res: any, next: any) => {
-      auth(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       let compras: Array<Compra> | undefined = await Compra.find();
       let totalPages = 1;
       if (compras.length % req.query.per_page == 0) {
@@ -32,8 +35,15 @@ export class CompraController extends AbstractController {
 
   create() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
-      await validarCamposCompra(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
+      let validouError = await validarCamposCompra(req, res);
+      if (validouError) {
+        return res.status(400).json({ msg: "Erro de validação!" });
+      }
+
       try {
         let compra: Compra = new Compra();
         compra.data = req.body.data;
@@ -51,7 +61,10 @@ export class CompraController extends AbstractController {
 
   show() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       try {
         let compra: Compra | undefined = await Compra.findOne({
           id: req.params.id,
@@ -69,8 +82,14 @@ export class CompraController extends AbstractController {
 
   update() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
-      await validarCamposCompra(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
+      let validouError = await validarCamposCompra(req, res);
+      if (validouError) {
+        return res.status(400).json({ msg: "Erro de validação!" });
+      }
       try {
         let compra: Compra | undefined = await Compra.findOne({
           id: req.params.id,
@@ -93,7 +112,10 @@ export class CompraController extends AbstractController {
   }
   remove() {
     return async (req: any, res: any, next: any) => {
-      await auth(req, res, next);
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       try {
         let compra: Compra | undefined = await Compra.findOne({
           id: req.params.id,

@@ -8,22 +8,23 @@ const authConfig = require("../config/auth");
 
 const degub = false;
 
-module.exports = async (req: any, res: any, next: any) => {
+module.exports = async (req: any, res: any) => {
   if (degub && process.env.NODE_ENV === "development") {
-    return next();
+    return true;
   }
 
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({ msg: "Token não fornecido" });
+    return { error: true, msg: "Token não fornecido" };
   }
 
   const [, token] = authHeader.split(" ");
 
   try {
     await promisify(jwt.verify)(token, authConfig.default.secret);
+    return { error: false };
   } catch (error) {
-    return res.status(401).json({ msg: "Token inválido!" });
+    return { error: true, msg: "Token inválido" };
   }
 };
