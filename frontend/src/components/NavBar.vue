@@ -69,12 +69,6 @@ export default {
           titulo: "Compras",
         },
         { rota: "/vendas", icone: "mdi-currency-usd", titulo: "Vendas" },
-        {
-          rota: "/relatorio/diario",
-          icone: "mdi-file-chart",
-          titulo: "Relatórios",
-        },
-        { rota: "/sobre", icone: "mdi-information-outline", titulo: "Sobre" },
       ],
     };
   },

@@ -207,6 +207,13 @@ export default {
   directives: { money: VMoney, mask },
   data() {
     return {
+      money: {
+        decimal: ",",
+        thousands: ".",
+        prefix: "R$ ",
+        precision: 2,
+        masked: false,
+      },
       tiposPagamento: [
         {
           id: 1,
@@ -372,7 +379,6 @@ export default {
       let auxTotal = String(this.itemAtual.valorTotal);
       auxTotal = Number(auxTotal.replace("R$ ", "").replace(",", "."));
       this.itemAtual.valorTotal = auxTotal;
-      console.log(this.itemAtual.valorTotal);
 
       let auxPago = String(this.itemAtual.valorPago);
       auxPago = Number(auxPago.replace("R$ ", "").replace(",", "."));
@@ -464,7 +470,6 @@ export default {
       }
     },
     async abrirVenda(item) {
-      console.log();
       this.tituloModal = "Editar Venda";
       this.itemAtual.id = item.id;
       this.itemAtual.data = item.data;
@@ -473,6 +478,7 @@ export default {
       this.itemAtual.valorTotal = item.valorTotal.toFixed(2);
       this.itemAtual.cliente.id = item.cliente.id;
       this.modalItem = true;
+
       await this.$axios
         .get(`/venda/${item.id}`)
         .then((response) => {

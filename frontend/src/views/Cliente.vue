@@ -168,7 +168,99 @@
       </v-card>
     </v-dialog>
     <!-- MODAL EDITAR COMPRA -->
-    
+    <v-dialog
+      v-model="modalVenda"
+      scrollable
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <v-card>
+        <v-card-title>
+          <span class="headline">Editar Venda</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container fluid>
+            <v-row>
+              <v-col cols="12" sm="12" md="6">
+                <v-text-field
+                  label="Data"
+                  hint="Data da compra"
+                  v-model="vendaAtual.data"
+                  v-mask="['##/##/####']"
+                  @keyup.enter="salvarVenda()"
+                  autocomplete="off"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="6">
+                <v-text-field
+                  v-if="nomeClienteAtual"
+                  readonly
+                  v-model="nomeClienteAtual"
+                  hint="Esse campo não pode ser editado"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="12">
+                <v-textarea
+                  label="Observação"
+                  v-model="vendaAtual.observacao"
+                  hint="Digite como foi gasto o dinheiro"
+                ></v-textarea>
+              </v-col>
+              <v-col cols="12" sm="12" md="6">
+                <v-text-field
+                  label="Valor Total"
+                  v-money="money"
+                  hint="Digite o valor total da venda"
+                  v-model.lazy="vendaAtual.valorTotal"
+                  clearable
+                  @keyup.enter="salvarVenda()"
+                  autocomplete="off"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="12" md="6">
+                <v-text-field
+                  label="Valor Pago"
+                  v-money="money"
+                  hint="Digite o valor total pago"
+                  v-model.lazy="vendaAtual.valorPago"
+                  clearable
+                  @keyup.enter="salvarVenda()"
+                  autocomplete="off"
+                ></v-text-field>
+              </v-col>
+              <v-col>
+                <v-select
+                  v-model="vendaAtual.tipoPagamento"
+                  hint="Tipo de pagamento"
+                  :items="tiposPagamento"
+                  item-text="nome"
+                  item-value="id"
+                  label="Select"
+                  persistent-hint
+                  return-object
+                  single-line
+                >
+                </v-select>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="fecharVenda()">Fechar</v-btn>
+          <v-btn
+            color="primary"
+            text
+            @click="salvarVenda()"
+            :disabled="
+              desabilitarBtnSalvar || vendaAtual.data.trim().length < 2
+            "
+            >Salvar</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-card v-if="!(isMobile() && !estadoMenu)">
       <v-card-title style="padding-bottom: 0; ">
         Clientes
@@ -235,12 +327,18 @@
 
 <script>
 import { mask } from "vue-the-mask";
+import { VMoney } from "v-money";
 export default {
-  directives: {
-    mask,
-  },
+  directives: { money: VMoney, mask },
   data() {
     return {
+      money: {
+        decimal: ",",
+        thousands: ".",
+        prefix: "R$ ",
+        precision: 2,
+        masked: false,
+      },
       carregandoClientes: false,
       desabilitarBtnDeletar: true,
       desabilitarBtnSalvar: false,
@@ -252,6 +350,8 @@ export default {
       tituloModal: "",
       modalItem: false,
       modalCompras: false,
+      modalVenda: false,
+      nomeClienteAtual: "",
       cliente: {
         nome: "",
         telefone: "",
@@ -266,6 +366,33 @@ export default {
         telefone: "",
         id: "",
       },
+      vendaAtual: {
+        id: "",
+        data: "",
+        cliente: {
+          id: 0,
+        },
+        observacao: "",
+        valorTotal: 0,
+        valorPago: 0,
+        tipoPagamento: {
+          id: 1,
+        },
+      },
+      tiposPagamento: [
+        {
+          id: 1,
+          nome: "Dinheiro",
+        },
+        {
+          id: 2,
+          nome: "Cartão de Crédito",
+        },
+        {
+          id: 3,
+          nome: "Cartão de Débito",
+        },
+      ],
       pesquisar: "",
       cabecalhosCompra: [
         { text: "Data", align: "left", value: "data", sortable: false },
@@ -572,8 +699,84 @@ export default {
           }
         });
     },
-    editarVenda(){
-
+    async abrirVenda(item) {
+      this.vendaAtual.id = item.id;
+      this.vendaAtual.data = item.data;
+      this.vendaAtual.observacao = item.observacao;
+      this.vendaAtual.valorPago = item.valorPago.toFixed(2);
+      this.vendaAtual.valorTotal = item.valorTotal.toFixed(2);
+      this.modalVenda = true;
+      await this.$axios
+        .get(`/venda/${item.id}`)
+        .then((response) => {
+          this.nomeClienteAtual = response.data.cliente.nome;
+          this.vendaAtual.cliente.id = response.data.cliente.id;
+        })
+        .catch((error) => {
+          this.$swal({
+            toast: true,
+            showConfirmButton: false,
+            timerProgressBar: true,
+            timer: 3000,
+            position: "top-end",
+            icon: "error",
+            title: "Falha!",
+            text: error.response.data.msg,
+          });
+        });
+    },
+    async salvarVenda() {
+      this.desabilitarBtnSalvar = true;
+      let auxTotal = String(this.vendaAtual.valorTotal);
+      auxTotal = Number(auxTotal.replace("R$ ", "").replace(",", "."));
+      this.vendaAtual.valorTotal = auxTotal;
+      let auxPago = String(this.vendaAtual.valorPago);
+      auxPago = Number(auxPago.replace("R$ ", "").replace(",", "."));
+      this.vendaAtual.valorPago = auxPago;
+      let idItem = this.vendaAtual.id;
+      await this.$axios
+        .put(`venda/${idItem}`, {
+          data: this.vendaAtual.data,
+          cliente: this.vendaAtual.cliente.id,
+          observacao: this.vendaAtual.observacao,
+          tipoPagamento: this.vendaAtual.tipoPagamento.id,
+          valorPago: this.vendaAtual.valorPago,
+          valorTotal: this.vendaAtual.valorTotal,
+        })
+        .then(async (response) => {
+          this.desabilitarBtnSalvar = false;
+          this.$swal({
+            toast: true,
+            showConfirmButton: false,
+            timerProgressBar: true,
+            timer: 3000,
+            position: "top-end",
+            icon: "success",
+            title: response.data.msg,
+          });
+          await this.$axios
+            .post(`venda/cliente/?per_page=${this.itensPorPagina}`, {
+              cliente: this.vendaAtual.cliente.id,
+            })
+            .then((response) => {
+              this.compras = response.data.result.data;
+              this.fecharVenda();
+            });
+        })
+        .catch((err) => {
+          this.desabilitarBtnSalvar = false;
+          this.$swal({
+            toast: true,
+            showConfirmButton: false,
+            timerProgressBar: true,
+            timer: 3000,
+            position: "top-end",
+            icon: "error",
+            title: "Falha!",
+            text: error.response.data.msg,
+          });
+          this.itemAtual.id = idItem;
+        });
     },
     async fecharCompras() {
       this.modalCompras = false;
@@ -581,6 +784,16 @@ export default {
       this.cliente.telefone = "";
       this.cliente.id = "";
     },
+    async fecharVenda() {
+      this.vendaAtual.id = "";
+      this.vendaAtual.data = "";
+      this.vendaAtual.observacao = "";
+      this.vendaAtual.valorPago = 0;
+      this.vendaAtual.valorTotal = 0;
+      this.vendaAtual.cliente.id = 0;
+      this.modalVenda = false;
+    },
+
     isMobile() {
       if (
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
