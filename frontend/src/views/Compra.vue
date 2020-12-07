@@ -101,6 +101,10 @@
           :page-count="numeroPaginas"
         >
           <!-- eslint-disable-next-line -->
+          <template v-slot:item.observacao="{ item }">
+            <pre>{{ item.observacao }}</pre>
+          </template>
+          <!-- eslint-disable-next-line -->
           <template v-slot:item.valor="{ item }">
             <span>{{
               Number(item.valor.toFixed(2)).toLocaleString("pt-BR", {
@@ -172,7 +176,12 @@ export default {
       },
       cabecalhos: [
         { text: "Data", align: "left", value: "data", sortable: false },
-        { text: "Observação", value: "observacao", sortable: false },
+        {
+          text: "Observação",
+          align: "center",
+          value: "observacao",
+          sortable: false,
+        },
         { text: "Valor", align: "right", value: "valor", sortable: false },
         { text: "Ação", value: "action", align: "right", sortable: false },
       ],
@@ -227,9 +236,7 @@ export default {
     },
     async salvarCompra() {
       this.desabilitarBtnSalvar = true;
-      console.log(this.itemAtual.data)
       // this.itemAtual.data = moment(this.itemAtual.data).format("YYYY-MM-DD");
-      console.log(moment(this.itemAtual.data))
       let aux = String(this.itemAtual.valor);
       aux = Number(aux.replace("R$ ", "").replace(",", "."));
       this.itemAtual.valor = aux;

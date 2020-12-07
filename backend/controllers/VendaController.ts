@@ -1,3 +1,4 @@
+import moment from "moment";
 import { Venda } from "../models/Venda";
 import { AbstractController } from "./AbstractController";
 const auth = require("../middlewares/auth");
@@ -10,7 +11,59 @@ export class VendaController extends AbstractController {
       if (autenticou.error) {
         return res.status(403).json({ msg: autenticou.msg });
       }
-      return res.status(200).json(await Venda.find());
+
+      let vendas: Array<Venda> | undefined = await Venda.find();
+      let totalPages = 1;
+      if (vendas.length % req.query.per_page == 0) {
+        totalPages = vendas.length / req.query.per_page;
+      } else {
+        totalPages = vendas.length / req.query.per_page + 1;
+      }
+
+      let result = await Venda.createQueryBuilder("venda")
+        .orderBy("venda.data", "ASC")
+        .leftJoinAndSelect("venda.cliente", "cliente")
+        .leftJoinAndSelect("venda.tipoPagamento", "tipoPagamento")
+        .paginate();
+      //format data dd/mm/yyyy
+      result.data.forEach((element: any) => {
+        element.data = moment(element.data).format("DD/MM/YYYY");
+      });
+
+      return res.status(200).json({ totalPages, result });
+    };
+  }
+
+  getByCliente() {
+    return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
+
+      let vendas: Array<Venda> | undefined = await Venda.createQueryBuilder(
+        "venda"
+      )
+        .orderBy("venda.data", "ASC")
+        .where("venda.clienteId = :cliente", { cliente: req.body.cliente })
+        .getMany();
+      let totalPages = 1;
+      if (vendas.length % req.query.per_page == 0) {
+        totalPages = vendas.length / req.query.per_page;
+      } else {
+        totalPages = vendas.length / req.query.per_page + 1;
+      }
+
+      let result: any | undefined = await Venda.createQueryBuilder("venda")
+        .orderBy("venda.data", "ASC")
+        .where("venda.clienteId = :cliente", { cliente: req.body.cliente })
+        .paginate();
+
+      result.data.forEach((element: any) => {
+        element.data = moment(element.data).format("DD/MM/YYYY");
+      });
+
+      return res.status(200).json({ totalPages, result });
     };
   }
 
@@ -30,8 +83,11 @@ export class VendaController extends AbstractController {
         venda.valorTotal = req.body.valorTotal;
 
         await venda.save();
+        return res
+          .status(201)
+          .json({ msg: "Venda cadastrada com sucesso!", venda });
       } catch (error) {
-        return res.status(500).json({ msg: "Erro interno!" });
+        return res.status(500).json({ msg: "Erro interno!", error });
       }
     };
   }
@@ -46,6 +102,7 @@ export class VendaController extends AbstractController {
         let venda: Venda | undefined = await Venda.findOne({
           id: req.params.id,
         });
+
         if (venda) {
           return res.status(200).json(venda);
         } else {
@@ -87,17 +144,38 @@ export class VendaController extends AbstractController {
       }
     };
   }
-  //   remove() {
-  //     return (req: any, res: any) => {
-  //       return res.status(200).json({ msg: "DELETE usuario" });
-  //     };
-  //   }
+  remove() {
+    return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
+      try {
+        let compra: Venda | undefined = await Venda.findOne({
+          id: req.params.id,
+        });
+        if (compra) {
+          await compra.remove();
+          return res
+            .status(200)
+            .json({ msg: "Registro de compra removido com sucesso!" });
+        } else {
+          return res
+            .status(404)
+            .json({ msg: "Registro de compra não encontrado!" });
+        }
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!", error });
+      }
+    };
+  }
 
   registrarRotas() {
     this.forRoute("/").get(this.get());
+    this.forRoute("/cliente/").post(this.getByCliente());
     this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
     this.forRoute("/:id").put(this.update());
-    // this.forRoute("/:id").delete(this.remove());
+    this.forRoute("/:id").delete(this.remove());
   }
 }

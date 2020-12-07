@@ -3,6 +3,9 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
@@ -14,17 +17,17 @@ export class Venda extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({ type: "date" })
   data!: Date;
 
-  @OneToOne((type) => Cliente)
+  @ManyToOne(() => Cliente, { onDelete: "CASCADE", eager: true })
   @JoinColumn()
   cliente!: Cliente;
 
   @Column()
   observacao?: string;
 
-  @OneToOne((type) => TipoPagamento)
+  @ManyToOne(() => TipoPagamento, { onDelete: "SET NULL", eager: true })
   @JoinColumn()
   tipoPagamento!: TipoPagamento;
 

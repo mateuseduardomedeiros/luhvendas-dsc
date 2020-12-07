@@ -14,6 +14,16 @@ const routes = [
       import(/* webpackChunkName: "Login" */ "@/views/Login.vue"),
   },
   {
+    path: "/",
+    name: "Home",
+    meta: {
+      titulo: "Home",
+    },
+    component: function() {
+      return import(/* webpackChunkName: "Home" */ "@/views/Home.vue");
+    },
+  },
+  {
     path: "/home",
     name: "Home",
     meta: {
@@ -40,6 +50,15 @@ const routes = [
     },
     component: () =>
       import(/* webpackChunkName: "Compras" */ "@/views/Compra.vue"),
+  },
+  {
+    path: "/vendas",
+    name: "Vendas",
+    meta: {
+      titulo: "Vendas",
+    },
+    component: () =>
+      import(/* webpackChunkName: "Vendas" */ "@/views/Venda.vue"),
   },
 ];
 

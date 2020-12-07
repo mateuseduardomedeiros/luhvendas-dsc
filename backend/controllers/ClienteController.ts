@@ -51,6 +51,21 @@ export class ClienteController extends AbstractController {
     };
   }
 
+  find() {
+    return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
+      let result = await Cliente.createQueryBuilder("cliente")
+        .where("cliente.nome like :nome", { nome: `${req.body.nome}%` })
+        .orderBy("nome", "ASC")
+        .getMany();
+
+      return res.status(200).json(result);
+    };
+  }
+
   create() {
     return async (req: any, res: any, next: any) => {
       let autenticou = await auth(req, res);
@@ -131,18 +146,39 @@ export class ClienteController extends AbstractController {
       }
     };
   }
-  // remove() {
-  //   return (req: any, res: any) => {
-  //     return res.status(200).json({ msg: "DELETE usuario" });
-  //   };
-  // }
+  remove() {
+    return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
+      try {
+        let cliente: Cliente | undefined = await Cliente.findOne({
+          id: req.params.id,
+        });
+        if (cliente) {
+          await cliente.remove();
+          return res
+            .status(200)
+            .json({ msg: "Cliente removido com sucesso!" });
+        } else {
+          return res
+            .status(404)
+            .json({ msg: "Cliente não encontrado!" });
+        }
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!", error });
+      }
+    };
+  }
 
   registrarRotas() {
     this.forRoute("/").get(this.get());
     this.forRoute("/find").post(this.getByNome());
+    this.forRoute("/nome").post(this.find());
     this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
     this.forRoute("/:id").put(this.update());
-    //this.forRoute("/:id").delete(this.remove());
+    this.forRoute("/:id").delete(this.remove());
   }
 }
