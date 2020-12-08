@@ -23,7 +23,6 @@ export class VendaController extends AbstractController {
       let valorTotal = 0;
       let valorPago = 0;
       vendas.forEach((element) => {
-        console.log(element);
         valorPago += element.valorPago;
         valorTotal += element.valorTotal;
       });

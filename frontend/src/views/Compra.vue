@@ -212,7 +212,7 @@ export default {
       },
       money: {
         decimal: ",",
-        thousands: ".",
+        thousands: "",
         prefix: "R$ ",
         precision: 2,
       },

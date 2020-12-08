@@ -387,7 +387,7 @@ export default {
       valorDevendo: 0,
       money: {
         decimal: ",",
-        thousands: ".",
+        thousands: "",
         prefix: "R$ ",
         precision: 2,
         masked: false,

@@ -299,7 +299,7 @@ export default {
       },
       money: {
         decimal: ",",
-        thousands: ".",
+        thousands: "",
         prefix: "R$ ",
         precision: 2,
         masked: false,
@@ -421,6 +421,7 @@ export default {
 
       let auxTotal = String(this.itemAtual.valorTotal);
       auxTotal = Number(auxTotal.replace("R$ ", "").replace(",", "."));
+      console.log(auxTotal);
       this.itemAtual.valorTotal = auxTotal;
 
       let auxPago = String(this.itemAtual.valorPago);
