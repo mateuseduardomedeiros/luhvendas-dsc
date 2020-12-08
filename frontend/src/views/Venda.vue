@@ -1,5 +1,12 @@
 <template>
   <div>
+    <v-dialog v-model="modalMes" width="390px">
+      <v-date-picker v-model="mesAno" type="month" locale="pt-br" scrollable>
+        <v-spacer></v-spacer>
+        <v-btn text color="primary" @click="modalMes = false">Fechar</v-btn>
+        <v-spacer></v-spacer>
+      </v-date-picker>
+    </v-dialog>
     <v-dialog
       v-model="modalItem"
       scrollable
@@ -133,8 +140,11 @@
           </v-flex>
           <v-flex xs12 sm6 :class="`${isMobile() ? 'mx-3' : 'pr-4'} `">
             <v-text-field
-              append-icon="mdi-magnify"
-              label="Pesquisar"
+              v-model="mesAnoFormatado"
+              :style="isMobile() ? '' : 'padding-top: 0; margin-top: 0;'"
+              readonly
+              @click="modalMes = true"
+              label="Mês"
               hide-details
             ></v-text-field>
           </v-flex>
@@ -281,6 +291,9 @@ export default {
       pesquisaCliente: "",
       nomeClienteAtual: "",
       modalItem: false,
+      modalMes: false,
+      mesAno: "",
+      mesAnoFormatado: "",
       pesquisar: "",
       novaVenda: false,
       itens: [],
@@ -364,6 +377,23 @@ export default {
             });
           });
       }
+    },
+    mesAno(val) {
+      this.mesAnoFormatado = `${val.split("-")[1]}/${val.split("-")[0]}`;
+
+      this.$axios
+        .post(
+          `venda/mes/?per_page=${this.itensPorPagina}&page=${this.paginaAtual}`,
+          {
+            data: this.mesAno,
+          }
+        )
+        .then((response) => {
+          this.itens = response.data.result.data;
+          this.valorPago = response.data.valorPago;
+          this.valorTotal = response.data.valorTotal;
+          this.modalMes = false;
+        });
     },
   },
   created() {

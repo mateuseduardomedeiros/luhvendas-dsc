@@ -1,5 +1,12 @@
 <template>
   <div>
+    <v-dialog v-model="modalMes" width="390px">
+      <v-date-picker v-model="mesAno" type="month" locale="pt-br" scrollable>
+        <v-spacer></v-spacer>
+        <v-btn text color="primary" @click="modalMes = false">Fechar</v-btn>
+        <v-spacer></v-spacer>
+      </v-date-picker>
+    </v-dialog>
     <v-dialog
       v-model="modalItem"
       scrollable
@@ -81,8 +88,11 @@
           </v-flex>
           <v-flex xs12 sm6 :class="`${isMobile() ? 'mx-3' : 'pr-4'} `">
             <v-text-field
-              append-icon="mdi-magnify"
-              label="Pesquisar"
+              v-model="mesAnoFormatado"
+              :style="isMobile() ? '' : 'padding-top: 0; margin-top: 0;'"
+              readonly
+              @click="modalMes = true"
+              label="Mês"
               hide-details
             ></v-text-field>
           </v-flex>
@@ -201,6 +211,9 @@ export default {
       itensPorPagina: 10,
       tituloModal: "",
       modalItem: false,
+      modalMes: false,
+      mesAno: "",
+      mesAnoFormatado: "",
       pesquisar: "",
       novaCompra: false,
       itens: [],
@@ -220,7 +233,7 @@ export default {
         { text: "Data", align: "left", value: "data", sortable: false },
         {
           text: "Observação",
-          align: "center",
+          align: "left",
           value: "observacao",
           sortable: false,
         },
@@ -240,6 +253,22 @@ export default {
         );
         this.itemAtual.valor = unmasked;
       }
+    },
+    mesAno(val) {
+      this.mesAnoFormatado = `${val.split("-")[1]}/${val.split("-")[0]}`;
+
+      this.$axios
+        .post(
+          `compra/mes/?per_page=${this.itensPorPagina}&page=${this.paginaAtual}`,
+          {
+            data: this.mesAno,
+          }
+        )
+        .then((response) => {
+          this.itens = response.data.result.data;
+          this.valorTotal = response.data.valorTotal;
+          this.modalMes = false;
+        });
     },
   },
 
@@ -369,8 +398,6 @@ export default {
       }
     },
     async abrirCompra(item) {
-      // const auxValor = document.getElementById("valor");
-
       this.tituloModal = "Editar Compra";
       this.modalItem = true;
       this.itemAtual.data = item.data;
@@ -379,19 +406,12 @@ export default {
       await this.$axios
         .get(`/compra/${item.id}`)
         .then((response) => {
-          // auxValor.value = ;
           document.querySelector("#valor").value = this.$toReal(
             response.data.valor
           );
-
           this.price = this.$toReal(response.data.valor);
-          // this.itemAtual.valor = item.valor.toFixed(2);
-          // setTimeout(() => {
-          //   document.querySelector("#valor").value = "R$ 10,00";
-          // }, 300);
         })
         .catch((error) => {
-          console.log(error);
           this.$swal({
             toast: true,
             showConfirmButton: false,

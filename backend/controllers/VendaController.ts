@@ -50,39 +50,107 @@ export class VendaController extends AbstractController {
         return res.status(403).json({ msg: autenticou.msg });
       }
 
-      let vendas: Array<Venda> | undefined = await Venda.createQueryBuilder(
-        "venda"
-      )
-        .orderBy("venda.data", "ASC")
-        .where("venda.clienteId = :cliente", { cliente: req.body.cliente })
-        .getMany();
-      let totalPages = 1;
-      if (vendas.length % req.query.per_page == 0) {
-        totalPages = vendas.length / req.query.per_page;
-      } else {
-        totalPages = vendas.length / req.query.per_page + 1;
+      try {
+        let vendas: Array<Venda> | undefined = await Venda.createQueryBuilder(
+          "venda"
+        )
+          .orderBy("venda.data", "ASC")
+          .where("venda.clienteId = :cliente", { cliente: req.body.cliente })
+          .getMany();
+
+        let totalPages = 1;
+        if (vendas.length % req.query.per_page == 0) {
+          totalPages = vendas.length / req.query.per_page;
+        } else {
+          totalPages = vendas.length / req.query.per_page + 1;
+        }
+
+        let valorTotal = 0;
+        let valorPago = 0;
+        vendas.forEach((element) => {
+          valorPago += element.valorPago;
+          valorTotal += element.valorTotal;
+        });
+        let valorDevendo = valorTotal - valorPago;
+
+        let result: any | undefined = await Venda.createQueryBuilder("venda")
+          .orderBy("venda.data", "ASC")
+          .where("venda.clienteId = :cliente", { cliente: req.body.cliente })
+          .paginate();
+
+        result.data.forEach((element: any) => {
+          element.data = moment(element.data).format("DD/MM/YYYY");
+        });
+
+        return res
+          .status(200)
+          .json({ valorPago, valorTotal, valorDevendo, totalPages, result });
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!" }, error);
+      }
+    };
+  }
+  getByClienteMes() {
+    return async (req: any, res: any, next: any) => {
+      try {
+        return res.status(200).send();
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!", error });
+      }
+    };
+  }
+
+  getByMes() {
+    return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
       }
 
-      let valorTotal = 0;
-      let valorPago = 0;
-      vendas.forEach((element) => {
-        valorPago += element.valorPago;
-        valorTotal += element.valorTotal;
-      });
-      let valorDevendo = valorTotal - valorPago;
+      try {
+        let vendas: Array<Venda> | undefined = await Venda.createQueryBuilder(
+          "venda"
+        )
+          .orderBy("venda.data", "ASC")
+          .where("venda.data::varchar like :data", {
+            data: `${req.body.data}%`,
+          })
+          .getMany();
 
-      let result: any | undefined = await Venda.createQueryBuilder("venda")
-        .orderBy("venda.data", "ASC")
-        .where("venda.clienteId = :cliente", { cliente: req.body.cliente })
-        .paginate();
+        let totalPages = 1;
+        if (vendas.length % req.query.per_page == 0) {
+          totalPages = vendas.length / req.query.per_page;
+        } else {
+          totalPages = vendas.length / req.query.per_page + 1;
+        }
 
-      result.data.forEach((element: any) => {
-        element.data = moment(element.data).format("DD/MM/YYYY");
-      });
+        let valorTotal = 0;
+        let valorPago = 0;
+        vendas.forEach((element) => {
+          valorPago += element.valorPago;
+          valorTotal += element.valorTotal;
+        });
+        let valorDevendo = valorTotal - valorPago;
 
-      return res
-        .status(200)
-        .json({ valorPago, valorTotal, valorDevendo, totalPages, result });
+        const result = await Venda.createQueryBuilder("venda")
+          .orderBy("venda.data", "ASC")
+          .leftJoinAndSelect("venda.cliente", "cliente")
+          .leftJoinAndSelect("venda.tipoPagamento", "tipoPagamento")
+          .where("venda.data::varchar like :data", {
+            data: `${req.body.data}%`,
+          })
+          .paginate();
+
+        result.data.forEach((element: any) => {
+          element.data = moment(element.data).format("DD/MM/YYYY");
+        });
+
+        return res
+          .status(200)
+          .json({ valorPago, valorTotal, valorDevendo, totalPages, result });
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!" }, error);
+      }
     };
   }
 
@@ -191,7 +259,9 @@ export class VendaController extends AbstractController {
 
   registrarRotas() {
     this.forRoute("/").get(this.get());
+    this.forRoute("/mes/").post(this.getByMes());
     this.forRoute("/cliente/").post(this.getByCliente());
+    this.forRoute("/cliente/mes/").post(this.getByClienteMes());
     this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
     this.forRoute("/:id").put(this.update());

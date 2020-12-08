@@ -13,28 +13,77 @@ export class CompraController extends AbstractController {
       if (autenticou.error) {
         return res.status(403).json({ msg: autenticou.msg });
       }
-      let compras: Array<Compra> | undefined = await Compra.find();
-      let totalPages = 1;
-      if (compras.length % req.query.per_page == 0) {
-        totalPages = compras.length / req.query.per_page;
-      } else {
-        totalPages = compras.length / req.query.per_page + 1;
+      try {
+        let compras: Array<Compra> | undefined = await Compra.find();
+        let totalPages = 1;
+        if (compras.length % req.query.per_page == 0) {
+          totalPages = compras.length / req.query.per_page;
+        } else {
+          totalPages = compras.length / req.query.per_page + 1;
+        }
+
+        let valorTotal = 0;
+        compras.forEach((element: any) => {
+          valorTotal += element.valor;
+        });
+
+        let result = await Compra.createQueryBuilder()
+          .orderBy("data", "ASC")
+          .paginate();
+        //format data dd/mm/yyyy
+        result.data.forEach((element: any) => {
+          element.data = moment(element.data).format("DD/MM/YYYY");
+        });
+
+        return res.status(200).json({ valorTotal, totalPages, result });
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!", error });
       }
+    };
+  }
 
-      let valorTotal = 0;
-      compras.forEach((element: any) => {
-        valorTotal += element.valor;
-      });
+  getByMes() {
+    return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
+      try {
+        let compras:
+          | Array<Compra>
+          | undefined = await Compra.createQueryBuilder("compra")
+          .orderBy("compra.data", "ASC")
+          .where("compra.data::varchar like :data", {
+            data: `${req.body.data}%`,
+          })
+          .getMany();
+        let totalPages = 1;
+        if (compras.length % req.query.per_page == 0) {
+          totalPages = compras.length / req.query.per_page;
+        } else {
+          totalPages = compras.length / req.query.per_page + 1;
+        }
 
-      let result = await Compra.createQueryBuilder()
-        .orderBy("data", "ASC")
-        .paginate();
-      //format data dd/mm/yyyy
-      result.data.forEach((element: any) => {
-        element.data = moment(element.data).format("DD/MM/YYYY");
-      });
+        let valorTotal = 0;
+        compras.forEach((element: any) => {
+          valorTotal += element.valor;
+        });
 
-      return res.status(200).json({ valorTotal, totalPages, result });
+        const result = await Compra.createQueryBuilder("compra")
+          .orderBy("compra.data", "ASC")
+          .where("compra.data::varchar like :data", {
+            data: `${req.body.data}%`,
+          })
+          .paginate();
+
+        result.data.forEach((element: any) => {
+          element.data = moment(element.data).format("DD/MM/YYYY");
+        });
+
+        return res.status(200).json({ valorTotal, totalPages, result });
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!", error });
+      }
     };
   }
 
@@ -143,6 +192,7 @@ export class CompraController extends AbstractController {
 
   registrarRotas() {
     this.forRoute("/").get(this.get());
+    this.forRoute("/mes/").post(this.getByMes());
     this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
     this.forRoute("/:id").put(this.update());
