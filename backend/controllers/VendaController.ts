@@ -20,6 +20,14 @@ export class VendaController extends AbstractController {
         totalPages = vendas.length / req.query.per_page + 1;
       }
 
+      let valorTotal = 0;
+      let valorPago = 0;
+      vendas.forEach((element) => {
+        console.log(element);
+        valorPago += element.valorPago;
+        valorTotal += element.valorTotal;
+      });
+
       let result = await Venda.createQueryBuilder("venda")
         .orderBy("venda.data", "ASC")
         .leftJoinAndSelect("venda.cliente", "cliente")
@@ -30,7 +38,9 @@ export class VendaController extends AbstractController {
         element.data = moment(element.data).format("DD/MM/YYYY");
       });
 
-      return res.status(200).json({ totalPages, result });
+      return res
+        .status(200)
+        .json({ valorPago, valorTotal, totalPages, result });
     };
   }
 
@@ -54,6 +64,14 @@ export class VendaController extends AbstractController {
         totalPages = vendas.length / req.query.per_page + 1;
       }
 
+      let valorTotal = 0;
+      let valorPago = 0;
+      vendas.forEach((element) => {
+        console.log(element);
+        valorPago += element.valorPago;
+        valorTotal += element.valorTotal;
+      });
+
       let result: any | undefined = await Venda.createQueryBuilder("venda")
         .orderBy("venda.data", "ASC")
         .where("venda.clienteId = :cliente", { cliente: req.body.cliente })
@@ -63,7 +81,7 @@ export class VendaController extends AbstractController {
         element.data = moment(element.data).format("DD/MM/YYYY");
       });
 
-      return res.status(200).json({ totalPages, result });
+      return res.status(200).json({ valorPago, valorTotal, totalPages, result });
     };
   }
 

@@ -209,6 +209,7 @@
               </v-col>
               <v-col cols="12" sm="12" md="6">
                 <v-text-field
+                  id="valorTotal"
                   label="Valor Total"
                   v-money="money"
                   hint="Digite o valor total da venda"
@@ -220,6 +221,7 @@
               </v-col>
               <v-col cols="12" sm="12" md="6">
                 <v-text-field
+                  id="valorPago"
                   label="Valor Pago"
                   v-money="money"
                   hint="Digite o valor total pago"
@@ -703,14 +705,16 @@ export default {
       this.vendaAtual.id = item.id;
       this.vendaAtual.data = item.data;
       this.vendaAtual.observacao = item.observacao;
-      this.vendaAtual.valorPago = item.valorPago.toFixed(2);
-      this.vendaAtual.valorTotal = item.valorTotal.toFixed(2);
       this.modalVenda = true;
       await this.$axios
         .get(`/venda/${item.id}`)
         .then((response) => {
           this.nomeClienteAtual = response.data.cliente.nome;
           this.vendaAtual.cliente.id = response.data.cliente.id;
+          let auxTotal = document.querySelector("#valorTotal");
+          auxTotal.value = response.data.valorTotal.toFixed(2);
+          let auxPago = document.querySelector("#valorPago");
+          auxPago.value = response.data.valorPago.toFixed(2);
         })
         .catch((error) => {
           this.$swal({
@@ -785,13 +789,21 @@ export default {
       this.cliente.id = "";
     },
     async fecharVenda() {
-      this.vendaAtual.id = "";
-      this.vendaAtual.data = "";
-      this.vendaAtual.observacao = "";
-      this.vendaAtual.valorPago = 0;
-      this.vendaAtual.valorTotal = 0;
-      this.vendaAtual.cliente.id = 0;
       this.modalVenda = false;
+      setTimeout(() => {
+        this.nomeClienteAtual = "";
+        this.vendaAtual.data = "";
+        this.vendaAtual.cliente.id = 0;
+        this.vendaAtual.observacao = "";
+        // this.vendaAtual.valorTotal = 0;
+        // this.vendaAtual.valorPago = 0;
+        const auxTotal = document.querySelector("#valorTotal");
+        auxTotal.value = 0;
+        const auxPago = document.querySelector("#valorPago");
+        auxPago.value = 0;
+        this.vendaAtual.tipoPagamento.id = 1;
+        this.vendaAtual.id = "";
+      }, 100);
     },
 
     isMobile() {

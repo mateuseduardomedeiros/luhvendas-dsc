@@ -58,6 +58,7 @@
               </v-col>
               <v-col cols="12" sm="12" md="6">
                 <v-text-field
+                  id="valorTotal"
                   label="Valor Total"
                   v-money="money"
                   hint="Digite o valor total da venda"
@@ -69,6 +70,7 @@
               </v-col>
               <v-col cols="12" sm="12" md="6">
                 <v-text-field
+                  id="valorPago"
                   label="Valor Pago"
                   v-money="money"
                   hint="Digite o valor total pago"
@@ -362,12 +364,14 @@ export default {
       this.carregandoCompras = false;
       this.modalItem = false;
       setTimeout(() => {
-        this.nomeClienteAtual = "";
+        const auxTotal = document.querySelector("#valorTotal");
+        auxTotal.value = 0;
+        const auxPago = document.querySelector("#valorPago");
+        auxPago.value = 0;
+        this.itemAtual.valorPago = this.nomeClienteAtual = "";
         this.itemAtual.data = "";
         this.itemAtual.cliente.id = 0;
         this.itemAtual.observacao = "";
-        this.itemAtual.valorTotal = 0;
-        this.itemAtual.valorPago = 0;
         this.itemAtual.tipoPagamento.id = 1;
         this.itemAtual.id = "";
         this.novaVenda = false;
@@ -466,6 +470,8 @@ export default {
               text: error.response.data.msg,
             });
             this.itemAtual.id = idItem;
+            this.fecharModal();
+            this.carregarVendas();
           });
       }
     },
@@ -474,8 +480,6 @@ export default {
       this.itemAtual.id = item.id;
       this.itemAtual.data = item.data;
       this.itemAtual.observacao = item.observacao;
-      this.itemAtual.valorPago = item.valorPago.toFixed(2);
-      this.itemAtual.valorTotal = item.valorTotal.toFixed(2);
       this.itemAtual.cliente.id = item.cliente.id;
       this.modalItem = true;
 
@@ -483,6 +487,11 @@ export default {
         .get(`/venda/${item.id}`)
         .then((response) => {
           this.nomeClienteAtual = response.data.cliente.nome;
+
+          let auxTotal = document.querySelector("#valorTotal");
+          auxTotal.value = response.data.valorTotal.toFixed(2);
+          let auxPago = document.querySelector("#valorPago");
+          auxPago.value = response.data.valorPago.toFixed(2);
         })
         .catch((error) => {
           this.$swal({

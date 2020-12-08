@@ -12,38 +12,37 @@
           <span class="headline">{{ tituloModal }}</span>
         </v-card-title>
         <v-card-text>
-          <v-container fluid>
-            <v-row>
-              <v-col cols="12" sm="12" md="6">
-                <v-text-field
-                  label="Data"
-                  hint="Data da compra"
-                  v-model="itemAtual.data"
-                  v-mask="['##/##/####']"
-                  @keyup.enter="salvarCompra()"
-                  autocomplete="off"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="12" md="6">
-                <v-text-field
-                  label="Valor"
-                  v-money="money"
-                  hint="Digite o valor total das compras"
-                  v-model.lazy="itemAtual.valor"
-                  clearable
-                  @keyup.enter="salvarCompra()"
-                  autocomplete="off"
-                ></v-text-field>
-              </v-col>
-              <v-col>
-                <v-textarea
-                  label="Observação"
-                  v-model="itemAtual.observacao"
-                  hint="Digite como foi gasto o dinheiro"
-                ></v-textarea>
-              </v-col>
-            </v-row>
-          </v-container>
+          <v-row>
+            <v-col cols="12" sm="12" md="6">
+              <v-text-field
+                label="Data"
+                hint="Data da compra"
+                v-model="itemAtual.data"
+                v-mask="['##/##/####']"
+                @keyup.enter="salvarCompra()"
+                autocomplete="off"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="12" md="6">
+              <v-text-field
+                id="valor"
+                label="Valor"
+                v-money="money"
+                hint="Digite o valor total das compras"
+                v-model="price"
+                clearable
+                @keyup.enter="salvarCompra()"
+                autocomplete="off"
+              ></v-text-field>
+            </v-col>
+            <v-col>
+              <v-textarea
+                label="Observação"
+                v-model="itemAtual.observacao"
+                hint="Digite como foi gasto o dinheiro"
+              ></v-textarea>
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -75,6 +74,7 @@
               color="primary"
               class="ml-2"
               @click="abrirModal()"
+              ref="teste"
             >
               <v-icon>mdi-plus</v-icon>
             </v-btn>
@@ -115,7 +115,12 @@
           </template>
           <!-- eslint-disable-next-line -->
           <template v-slot:item.action="{ item }">
-            <v-icon class="mr-1" small color="info" @click="abrirCompra(item)">
+            <v-icon
+              class="mr-1"
+              small
+              color="info"
+              @click.stop="abrirCompra(item)"
+            >
               mdi-pencil
             </v-icon>
             <v-icon
@@ -145,9 +150,12 @@ import { mask } from "vue-the-mask";
 import moment from "moment";
 import { VMoney } from "v-money";
 export default {
+  name: "Compra",
   directives: { money: VMoney, mask },
   data() {
     return {
+      price: "R$ 0,00",
+
       carregandoCompras: false,
       desabilitarBtnDeletar: true,
       desabilitarBtnSalvar: false,
@@ -172,7 +180,6 @@ export default {
         thousands: ".",
         prefix: "R$ ",
         precision: 2,
-        masked: false,
       },
       cabecalhos: [
         { text: "Data", align: "left", value: "data", sortable: false },
@@ -187,6 +194,20 @@ export default {
       ],
     };
   },
+  watch: {
+    price(val) {
+      if (val !== undefined || val !== null) {
+        const unmasked = Number(
+          String(val)
+            .replace(this.money.prefix, "")
+            .replace(".", "")
+            .replace(",", ".")
+        );
+        this.itemAtual.valor = unmasked;
+      }
+    },
+  },
+
   computed: {
     estadoMenu() {
       return this.$store.state.estadoMenu;
@@ -229,7 +250,8 @@ export default {
       setTimeout(() => {
         this.itemAtual.data = "";
         this.itemAtual.observacao = "";
-        this.itemAtual.valor = null;
+        const auxValor = document.querySelector("#valor");
+        auxValor.value = 0;
         this.itemAtual.id = "";
         this.novaCompra = false;
       }, 100);
@@ -311,18 +333,29 @@ export default {
       }
     },
     async abrirCompra(item) {
+      // const auxValor = document.getElementById("valor");
+
+      this.tituloModal = "Editar Compra";
+      this.modalItem = true;
+      this.itemAtual.data = item.data;
+      this.itemAtual.observacao = item.observacao;
+      this.itemAtual.id = item.id;
       await this.$axios
         .get(`/compra/${item.id}`)
         .then((response) => {
-          this.desabilitarBtnDeletar = response.data.length > 0 ? true : false;
-          this.tituloModal = "Editar Compra";
-          this.itemAtual.data = item.data;
-          this.itemAtual.observacao = item.observacao;
-          this.itemAtual.valor = item.valor.toFixed(2);
-          this.itemAtual.id = item.id;
-          this.modalItem = true;
+          // auxValor.value = ;
+          document.querySelector("#valor").value = this.$toReal(
+            response.data.valor
+          );
+
+          this.price = this.$toReal(response.data.valor);
+          // this.itemAtual.valor = item.valor.toFixed(2);
+          // setTimeout(() => {
+          //   document.querySelector("#valor").value = "R$ 10,00";
+          // }, 300);
         })
         .catch((error) => {
+          console.log(error);
           this.$swal({
             toast: true,
             showConfirmButton: false,
@@ -331,7 +364,7 @@ export default {
             position: "top-end",
             icon: "error",
             title: "Falha!",
-            text: error.response.data.msg,
+            text: error.response,
           });
         });
     },

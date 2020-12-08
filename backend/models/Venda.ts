@@ -3,10 +3,7 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
-  OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Cliente } from "./Cliente";
@@ -31,9 +28,9 @@ export class Venda extends BaseEntity {
   @JoinColumn()
   tipoPagamento!: TipoPagamento;
 
-  @Column()
+  @Column("float", {default: 0})
   valorTotal!: number;
 
-  @Column()
-  valorPago?: number;
+  @Column("float", {default: 0})
+  valorPago!: number;
 }

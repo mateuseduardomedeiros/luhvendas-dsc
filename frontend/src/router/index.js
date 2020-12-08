@@ -25,7 +25,7 @@ const routes = [
   },
   {
     path: "/home",
-    name: "Home",
+    name: "Home2",
     meta: {
       titulo: "Home",
     },
