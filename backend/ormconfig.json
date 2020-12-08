@@ -2,10 +2,9 @@
   "type": "postgres",
   "host": "localhost",
   "port": 5432,
-  "username": "postgres",
-  "password": "root",
+  "username": "",
+  "password": "",
   "database": "luhvendas",
-
   "synchronize": true,
   "logging": false,
   "migrations": ["migrations/**/*.ts"],

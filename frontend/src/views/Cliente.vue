@@ -175,16 +175,6 @@
                 </v-data-table>
               </v-col>
               <v-col cols="12" sm="12" md="6">
-                <!-- <v-text-field
-                  label="Telefone"
-                  hint="Digite um número de telefone"
-                  v-model="itemAtual.telefone"
-                  clearable
-                  counter
-                  @keyup.enter="salvarCliente()"
-                  v-mask="['(##) #########']"
-                  autocomplete="off"
-                ></v-text-field> -->
               </v-col>
             </v-row>
           </v-container>
@@ -560,9 +550,26 @@ export default {
     },
   },
   created() {
-    this.carregarClientes();
+    this.noAuth();
   },
   methods: {
+    async noAuth() {
+      if (!localStorage.token) {
+        this.$swal({
+          toast: true,
+          showConfirmButton: false,
+          timerProgressBar: true,
+          timer: 3000,
+          position: "top-end",
+          icon: "error",
+          title: "Falha!",
+          text: "Realize login para ver isso!",
+        });
+        this.$router.push("/login");
+      } else {
+        this.carregarClientes();
+      }
+    },
     async carregarClientes() {
       this.carregandoClientes = true;
       await this.$axios

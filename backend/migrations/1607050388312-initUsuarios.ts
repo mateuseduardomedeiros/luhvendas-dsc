@@ -9,6 +9,12 @@ export class initUsuarios1607050388312 implements MigrationInterface {
     usuarioEduardo.senha = "Mateuseduardo@2";
     usuarioEduardo.hashSenha()
 
+    let usuarioGustavo: Usuario = new Usuario();
+    usuarioGustavo.nome = "Gustavo";
+    usuarioGustavo.login = "gustavo";
+    usuarioGustavo.senha = "gustavo00";
+    usuarioGustavo.hashSenha()
+
     let usuarioLuzia: Usuario = new Usuario();
     usuarioLuzia.nome = "Luzia";
     usuarioLuzia.login = "luzia";
@@ -17,6 +23,7 @@ export class initUsuarios1607050388312 implements MigrationInterface {
 
     await usuarioEduardo.save();
     await usuarioLuzia.save();
+    await usuarioGustavo.save();
    
   }
 

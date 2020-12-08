@@ -20,10 +20,10 @@
         :info="
           totalVendas
             .toFixed(2)
-            .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
+            .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
         "
       />
-      
+
       <Card
         icon="cash-usd"
         :md="6"
@@ -49,7 +49,7 @@
       <Card
         icon="home-currency-usd"
         :md="12"
-        :color="lucro>0 ? '#3D844A' : '#E74C3C'"
+        :color="lucro > 0 ? '#3D844A' : '#E74C3C'"
         titulo="Lucro"
         :info="
           lucro
@@ -115,9 +115,26 @@ export default {
     };
   },
   created() {
-    this.carregarVendasMes();
+    this.noAuth();
   },
   methods: {
+    async noAuth() {
+      if (!localStorage.token) {
+        this.$swal({
+          toast: true,
+          showConfirmButton: false,
+          timerProgressBar: true,
+          timer: 3000,
+          position: "top-end",
+          icon: "error",
+          title: "Falha!",
+          text: "Realize login para ver isso!",
+        });
+        this.$router.push("/login");
+      } else {
+        this.carregarVendasMes();
+      }
+    },
     async carregarVendasMes() {
       try {
         let mes = moment().format("YYYY-MM");
@@ -142,7 +159,7 @@ export default {
             this.totalCompra = response.data.valorTotal;
           });
 
-          this.lucro = this.totalVendas - this.totalCompra;
+        this.lucro = this.totalVendas - this.totalCompra;
       } catch (error) {
         this.$swal({
           toast: true,
@@ -152,7 +169,7 @@ export default {
           position: "top-end",
           icon: "error",
           title: "Falha!",
-          text: error.response,
+          text: error.response.data.msg,
         });
       }
     },

@@ -278,9 +278,26 @@ export default {
     },
   },
   created() {
-    this.carregarCompras();
+    this.noAuth();
   },
   methods: {
+    async noAuth() {
+      if (!localStorage.token) {
+        this.$swal({
+          toast: true,
+          showConfirmButton: false,
+          timerProgressBar: true,
+          timer: 3000,
+          position: "top-end",
+          icon: "error",
+          title: "Falha!",
+          text: "Realize login para ver isso!",
+        });
+        this.$router.push("/login");
+      } else {
+        this.carregarCompras();
+      }
+    },
     async carregarCompras() {
       this.carregandoCompras = true;
       await this.$axios
