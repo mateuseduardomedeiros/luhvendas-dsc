@@ -67,10 +67,10 @@ export class VendaController extends AbstractController {
       let valorTotal = 0;
       let valorPago = 0;
       vendas.forEach((element) => {
-        console.log(element);
         valorPago += element.valorPago;
         valorTotal += element.valorTotal;
       });
+      let valorDevendo = valorTotal - valorPago;
 
       let result: any | undefined = await Venda.createQueryBuilder("venda")
         .orderBy("venda.data", "ASC")
@@ -81,7 +81,9 @@ export class VendaController extends AbstractController {
         element.data = moment(element.data).format("DD/MM/YYYY");
       });
 
-      return res.status(200).json({ valorPago, valorTotal, totalPages, result });
+      return res
+        .status(200)
+        .json({ valorPago, valorTotal, valorDevendo, totalPages, result });
     };
   }
 

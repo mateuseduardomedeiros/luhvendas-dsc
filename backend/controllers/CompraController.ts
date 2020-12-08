@@ -21,6 +21,11 @@ export class CompraController extends AbstractController {
         totalPages = compras.length / req.query.per_page + 1;
       }
 
+      let valorTotal = 0;
+      compras.forEach((element: any) => {
+        valorTotal += element.valor;
+      });
+
       let result = await Compra.createQueryBuilder()
         .orderBy("data", "ASC")
         .paginate();
@@ -29,7 +34,7 @@ export class CompraController extends AbstractController {
         element.data = moment(element.data).format("DD/MM/YYYY");
       });
 
-      return res.status(200).json({ totalPages, result });
+      return res.status(200).json({ valorTotal, totalPages, result });
     };
   }
 

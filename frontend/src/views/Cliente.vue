@@ -147,7 +147,7 @@
                 </v-data-table>
               </v-col>
               <v-col cols="12" sm="12" md="6">
-                <v-text-field
+                <!-- <v-text-field
                   label="Telefone"
                   hint="Digite um número de telefone"
                   v-model="itemAtual.telefone"
@@ -156,11 +156,59 @@
                   @keyup.enter="salvarCliente()"
                   v-mask="['(##) #########']"
                   autocomplete="off"
-                ></v-text-field>
+                ></v-text-field> -->
               </v-col>
             </v-row>
           </v-container>
         </v-card-text>
+
+        <v-card-title style="padding-top: 0" v-if="itens.length !== 0">
+          <v-container
+            fluid
+            style="padding: 0"
+            :class="isMobile() ? 'mt-3 text-center' : ''"
+          >
+            <v-row
+              align="center"
+              :class="`${isMobile() ? 'text-center' : 'text-end'}`"
+            >
+              <v-spacer></v-spacer>
+              <v-col cols="12" sm="12">
+                <h1 class="subtitle-2 text-no-wrap">
+                  Total Vendido:
+                  {{
+                    Number(valorTotal.toFixed(2)).toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })
+                  }}
+                </h1>
+                <h1 class="subtitle-2 text-no-wrap">
+                  Total Recebido:
+                  {{
+                    Number(valorPago.toFixed(2)).toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })
+                  }}
+                </h1>
+                <h1
+                  class="subtitle-2 text-no-wrap"
+                  :class="valorDevendo > 0 ? 'error' : 'success'"
+                >
+                  Devendo:
+                  {{
+                    Number(valorDevendo.toFixed(2)).toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })
+                  }}
+                </h1>
+              </v-col>
+              <v-spacer v-if="isMobile()"></v-spacer>
+            </v-row>
+          </v-container>
+        </v-card-title>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="primary" text @click="fecharCompras()">Fechar</v-btn>
@@ -334,6 +382,9 @@ export default {
   directives: { money: VMoney, mask },
   data() {
     return {
+      valorPago: 0,
+      valorTotal: 0,
+      valorDevendo: 0,
       money: {
         decimal: ",",
         thousands: ".",
@@ -654,6 +705,9 @@ export default {
           cliente: item.id,
         })
         .then((response) => {
+          this.valorPago = response.data.valorPago;
+          this.valorTotal = response.data.valorTotal;
+          this.valorDevendo = response.data.valorDevendo;
           this.compras = response.data.result.data;
         });
     },
@@ -764,6 +818,9 @@ export default {
             })
             .then((response) => {
               this.compras = response.data.result.data;
+              this.valorPago = response.data.valorPago;
+              this.valorTotal = response.data.valorTotal;
+              this.valorDevendo = response.data.valorDevendo;
               this.fecharVenda();
             });
         })
@@ -795,8 +852,6 @@ export default {
         this.vendaAtual.data = "";
         this.vendaAtual.cliente.id = 0;
         this.vendaAtual.observacao = "";
-        // this.vendaAtual.valorTotal = 0;
-        // this.vendaAtual.valorPago = 0;
         const auxTotal = document.querySelector("#valorTotal");
         auxTotal.value = 0;
         const auxPago = document.querySelector("#valorPago");

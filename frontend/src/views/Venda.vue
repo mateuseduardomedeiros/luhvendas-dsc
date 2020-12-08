@@ -197,6 +197,41 @@
           ></v-pagination>
         </div>
       </div>
+      <v-card-title style="padding-top: 0" v-if="itens.length !== 0">
+        <v-container
+          fluid
+          style="padding: 0"
+          :class="isMobile() ? 'mt-3 text-center' : ''"
+        >
+          <v-row
+            align="center"
+            :class="`${isMobile() ? 'text-center' : 'text-end'}`"
+          >
+            <v-spacer></v-spacer>
+            <v-col cols="12" sm="12">
+              <h1 class="subtitle-2 text-no-wrap">
+                Total Vendido:
+                {{
+                  Number(valorTotal.toFixed(2)).toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })
+                }}
+              </h1>
+              <h1 class="subtitle-2 text-no-wrap">
+                Total Recebido:
+                {{
+                  Number(valorPago.toFixed(2)).toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })
+                }}
+              </h1>
+            </v-col>
+            <v-spacer v-if="isMobile()"></v-spacer>
+          </v-row>
+        </v-container>
+      </v-card-title>
     </v-card>
   </div>
 </template>
@@ -209,6 +244,8 @@ export default {
   directives: { money: VMoney, mask },
   data() {
     return {
+      valorPago: 0,
+      valorTotal: 0,
       money: {
         decimal: ",",
         thousands: ".",
@@ -341,6 +378,8 @@ export default {
           this.itens = response.data.result.data;
           this.carregandoCompras = false;
           this.numeroPaginas = parseInt(response.data.totalPages);
+          this.valorPago = response.data.valorPago;
+          this.valorTotal = response.data.valorTotal;
         })
         .catch((error) => {
           this.$swal({
