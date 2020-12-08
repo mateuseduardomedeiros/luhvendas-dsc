@@ -1,5 +1,13 @@
 <template>
   <div>
+    <!-- MODAL MÊS  -->
+    <v-dialog v-model="modalMes" width="390px">
+      <v-date-picker v-model="mesAno" type="month" locale="pt-br" scrollable>
+        <v-spacer></v-spacer>
+        <v-btn text color="primary" @click="modalMes = false">Fechar</v-btn>
+        <v-spacer></v-spacer>
+      </v-date-picker>
+    </v-dialog>
     <!-- MODAL CLIENTE -->
     <v-dialog
       v-model="modalItem"
@@ -81,12 +89,32 @@
           <span class="headline"
             >{{ cliente.nome }} - {{ cliente.telefone }}</span
           >
+          <v-layout row wrap>
+            <v-flex
+              xs12
+              sm6
+              :class="`d-flex align-center ${isMobile() ? 'mx-3' : 'pl-4'}`"
+            >
+              <v-spacer v-if="isMobile()"></v-spacer>
+            </v-flex>
+            <v-flex xs12 sm6 :class="`${isMobile() ? 'mx-3' : 'pr-4'} `">
+              <v-text-field
+                v-model="mesAnoFormatado"
+                :style="isMobile() ? '' : 'padding-top: 0; margin-top: 0;'"
+                readonly
+                @click="modalMes = true"
+                label="Mês"
+                hide-details
+              ></v-text-field>
+            </v-flex>
+          </v-layout>
         </v-card-title>
         <v-card-text>
           <v-container fluid>
             <v-row>
               <v-col cols="12" sm="12" md="12">
                 <v-data-table
+                  dense
                   :headers="cabecalhosCompra"
                   :items="compras"
                   :loading="carregandoItens"
@@ -382,6 +410,7 @@ export default {
   directives: { money: VMoney, mask },
   data() {
     return {
+      clienteId: 0,
       valorPago: 0,
       valorTotal: 0,
       valorDevendo: 0,
@@ -404,6 +433,9 @@ export default {
       modalItem: false,
       modalCompras: false,
       modalVenda: false,
+      modalMes: false,
+      mesAno: "",
+      mesAnoFormatado: "",
       nomeClienteAtual: "",
       cliente: {
         nome: "",
@@ -507,6 +539,24 @@ export default {
       } else {
         this.carregarClientes();
       }
+    },
+    mesAno(val) {
+      this.mesAnoFormatado = `${val.split("-")[1]}/${val.split("-")[0]}`;
+
+      this.$axios
+        .post(
+          `venda/cliente/mes/?per_page=${this.itensPorPagina}&page=${this.paginaAtual}`,
+          {
+            data: this.mesAno,
+            cliente: this.clienteId,
+          }
+        )
+        .then((response) => {
+          this.compras = response.data.vendas;
+          this.valorTotal = response.data.valorTotal;
+          this.valorPago = response.data.valorPago;
+          this.modalMes = false;
+        });
     },
   },
   created() {
@@ -700,6 +750,7 @@ export default {
       this.cliente.nome = item.nome;
       this.cliente.telefone = item.telefone;
       this.cliente.id = item.id;
+      this.clienteId = item.id;
       await this.$axios
         .post(`venda/cliente/?per_page=${this.itensPorPagina}`, {
           cliente: item.id,

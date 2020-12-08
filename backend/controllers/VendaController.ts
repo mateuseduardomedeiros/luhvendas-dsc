@@ -12,34 +12,38 @@ export class VendaController extends AbstractController {
         return res.status(403).json({ msg: autenticou.msg });
       }
 
-      let vendas: Array<Venda> | undefined = await Venda.find();
-      let totalPages = 1;
-      if (vendas.length % req.query.per_page == 0) {
-        totalPages = vendas.length / req.query.per_page;
-      } else {
-        totalPages = vendas.length / req.query.per_page + 1;
+      try {
+        let vendas: Array<Venda> | undefined = await Venda.find();
+        let totalPages = 1;
+        if (vendas.length % req.query.per_page == 0) {
+          totalPages = vendas.length / req.query.per_page;
+        } else {
+          totalPages = vendas.length / req.query.per_page + 1;
+        }
+
+        let valorTotal = 0;
+        let valorPago = 0;
+        vendas.forEach((element) => {
+          valorPago += element.valorPago;
+          valorTotal += element.valorTotal;
+        });
+
+        let result = await Venda.createQueryBuilder("venda")
+          .orderBy("venda.data", "ASC")
+          .leftJoinAndSelect("venda.cliente", "cliente")
+          .leftJoinAndSelect("venda.tipoPagamento", "tipoPagamento")
+          .paginate();
+        //format data dd/mm/yyyy
+        result.data.forEach((element: any) => {
+          element.data = moment(element.data).format("DD/MM/YYYY");
+        });
+
+        return res
+          .status(200)
+          .json({ valorPago, valorTotal, totalPages, result });
+      } catch (error) {
+        return res.status(500).json({ msg: "Erro interno!", error });
       }
-
-      let valorTotal = 0;
-      let valorPago = 0;
-      vendas.forEach((element) => {
-        valorPago += element.valorPago;
-        valorTotal += element.valorTotal;
-      });
-
-      let result = await Venda.createQueryBuilder("venda")
-        .orderBy("venda.data", "ASC")
-        .leftJoinAndSelect("venda.cliente", "cliente")
-        .leftJoinAndSelect("venda.tipoPagamento", "tipoPagamento")
-        .paginate();
-      //format data dd/mm/yyyy
-      result.data.forEach((element: any) => {
-        element.data = moment(element.data).format("DD/MM/YYYY");
-      });
-
-      return res
-        .status(200)
-        .json({ valorPago, valorTotal, totalPages, result });
     };
   }
 
@@ -49,7 +53,6 @@ export class VendaController extends AbstractController {
       if (autenticou.error) {
         return res.status(403).json({ msg: autenticou.msg });
       }
-
       try {
         let vendas: Array<Venda> | undefined = await Venda.createQueryBuilder(
           "venda"
@@ -92,8 +95,31 @@ export class VendaController extends AbstractController {
   }
   getByClienteMes() {
     return async (req: any, res: any, next: any) => {
+      let autenticou = await auth(req, res);
+      if (autenticou.error) {
+        return res.status(403).json({ msg: autenticou.msg });
+      }
       try {
-        return res.status(200).send();
+        let vendas: Array<Venda> | undefined = await Venda.createQueryBuilder(
+          "venda"
+        )
+          .orderBy("venda.data", "ASC")
+          .where(
+            "venda.clienteId = :cliente and venda.data::varchar like :data",
+            {
+              cliente: req.body.cliente,
+              data: `${req.body.data}%`,
+            }
+          )
+          .getMany();
+
+        let valorTotal = 0;
+        let valorPago = 0;
+        vendas.forEach((element) => {
+          valorPago += element.valorPago;
+          valorTotal += element.valorTotal;
+        });
+        return res.status(200).json({valorTotal, valorPago, vendas});
       } catch (error) {
         return res.status(500).json({ msg: "Erro interno!", error });
       }
