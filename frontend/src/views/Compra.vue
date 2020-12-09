@@ -164,15 +164,6 @@
             <v-spacer></v-spacer>
             <v-col cols="12" sm="12">
               <h1 class="subtitle-2 text-no-wrap">
-                Total Vendido:
-                {{
-                  Number(valorTotal.toFixed(2)).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })
-                }}
-              </h1>
-              <!-- <h1 class="subtitle-2 text-no-wrap">
                 Total Gasto:
                 {{
                   Number(valorTotal.toFixed(2)).toLocaleString("pt-BR", {
@@ -180,7 +171,7 @@
                     currency: "BRL",
                   })
                 }}
-              </h1> -->
+              </h1>
             </v-col>
             <v-spacer v-if="isMobile()"></v-spacer>
           </v-row>
