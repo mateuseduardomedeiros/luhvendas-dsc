@@ -10,24 +10,6 @@ export class UsuarioController extends AbstractController {
     };
   }
 
-  // create() {
-  //   return async (req: any, res: any, next: any) => {
-  //     try {
-  //       let usuario: Usuario = new Usuario();
-  //       usuario.nome = req.body.nome;
-  //       usuario.login = req.body.login;
-  //       usuario.senha = req.body.senha;
-  //       await usuario.hashSenha();
-  //       await usuario.save();
-  //       return res
-  //         .status(201)
-  //         .json({ msg: "Usuário cadastrado com sucesso!", usuario });
-  //     } catch (error) {
-  //       return;
-  //     }
-  //   };
-  // }
-
   show() {
     return async (req: any, res: any, next: any) => {
       try {
@@ -45,22 +27,8 @@ export class UsuarioController extends AbstractController {
     };
   }
 
-  // update() {
-  //   return (req: any, res: any, next: any) => {
-  //     return res.status(200).json({ msg: "PUT usuario" });
-  //   };
-  // }
-  // remove() {
-  //   return (req: any, res: any, next: any) => {
-  //     return res.status(200).json({ msg: "DELETE usuario" });
-  //   };
-  // }
-
   registrarRotas() {
     this.forRoute("/").get(this.get());
-    // this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
-    // this.forRoute("/:id").put(this.update());
-    // this.forRoute("/:id").delete(this.remove());
   }
 }

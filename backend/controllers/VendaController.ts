@@ -2,6 +2,7 @@ import moment from "moment";
 import { Venda } from "../models/Venda";
 import { AbstractController } from "./AbstractController";
 const auth = require("../middlewares/auth");
+const validarCamposVenda = require("../middlewares/VendaValidator");
 export class VendaController extends AbstractController {
   protected prefix: string = "/venda";
 
@@ -119,7 +120,7 @@ export class VendaController extends AbstractController {
           valorPago += element.valorPago;
           valorTotal += element.valorTotal;
         });
-        return res.status(200).json({valorTotal, valorPago, vendas});
+        return res.status(200).json({ valorTotal, valorPago, vendas });
       } catch (error) {
         return res.status(500).json({ msg: "Erro interno!", error });
       }
@@ -186,6 +187,10 @@ export class VendaController extends AbstractController {
       if (autenticou.error) {
         return res.status(403).json({ msg: autenticou.msg });
       }
+      let validouError = await validarCamposVenda(req, res);
+      if (validouError) {
+        return res.status(400).json({ msg: "Erro de validação" });
+      }
       try {
         let venda: Venda = new Venda();
         venda.data = req.body.data;
@@ -232,6 +237,10 @@ export class VendaController extends AbstractController {
       let autenticou = await auth(req, res);
       if (autenticou.error) {
         return res.status(403).json({ msg: autenticou.msg });
+      }
+      let validouError = await validarCamposVenda(req, res);
+      if (validouError) {
+        return res.status(400).json({ msg: "Erro de validação" });
       }
       try {
         let venda: Venda | undefined = await Venda.findOne({
@@ -282,7 +291,6 @@ export class VendaController extends AbstractController {
       }
     };
   }
-
   registrarRotas() {
     this.forRoute("/").get(this.get());
     this.forRoute("/mes/").post(this.getByMes());

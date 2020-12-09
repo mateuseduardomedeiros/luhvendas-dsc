@@ -6,7 +6,7 @@ export class initUsuarios1607050388312 implements MigrationInterface {
     let usuarioEduardo: Usuario = new Usuario();
     usuarioEduardo.nome = "Eduardo";
     usuarioEduardo.login = "eduardo";
-    usuarioEduardo.senha = "Mateuseduardo@2";
+    usuarioEduardo.senha = "Mateuseduardo";
     usuarioEduardo.hashSenha()
 
     let usuarioGustavo: Usuario = new Usuario();

@@ -22,7 +22,11 @@ export class TipoPagamentoController extends AbstractController {
       if (autenticou.error) {
         return res.status(403).json({ msg: autenticou.msg });
       }
-      await validarCamposTipoPagamento(req, res, next);
+
+      let validouError = await validarCamposTipoPagamento(req, res);
+      if (validouError) {
+        return res.status(400).json({ msg: "Erro de validação!" });
+      }
 
       let buscaTipoPagamento:
         | TipoPagamento
@@ -79,7 +83,10 @@ export class TipoPagamentoController extends AbstractController {
       if (autenticou.error) {
         return res.status(403).json({ msg: autenticou.msg });
       }
-      await validarCamposTipoPagamento(req, res, next);
+      let validouError = await validarCamposTipoPagamento(req, res);
+      if (validouError) {
+        return res.status(400).json({ msg: "Erro de validação!" });
+      }
       try {
         let tipopagamento:
           | TipoPagamento
@@ -103,17 +110,11 @@ export class TipoPagamentoController extends AbstractController {
       }
     };
   }
-  //   remove() {
-  //     return (req: any, res: any) => {
-  //       return res.status(200).json({ msg: "DELETE usuario" });
-  //     };
-  //   }
 
   registrarRotas() {
     this.forRoute("/").get(this.get());
     this.forRoute("/").post(this.create());
     this.forRoute("/:id").get(this.show());
     this.forRoute("/:id").put(this.update());
-    // this.forRoute("/:id").delete(this.remove());
   }
 }
