@@ -1,6 +1,6 @@
 {
   "name": "luhvendas",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "start": "ts-node server.ts",
@@ -25,6 +25,7 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
     "morgan": "~1.9.1",
+    "nodemon": "^2.0.6",
     "pg": "^8.5.1",
     "reflect-metadata": "^0.1.13",
     "ts-node": "^9.1.0",
