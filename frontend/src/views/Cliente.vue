@@ -122,6 +122,7 @@
                   :search="pesquisar"
                   :page.sync="paginaAtual"
                   :items-per-page="Number(itensPorPagina)"
+                  :server-items-length="totalItems"
                   hide-default-footer
                   :page-count="numeroPaginas"
                 >
@@ -433,6 +434,7 @@ export default {
         id: 0,
       },
       compras: [],
+      totalItems: 0,
       pesquisar: "",
       novoCliente: false,
       itens: [],
@@ -767,6 +769,7 @@ export default {
           this.valorTotal = response.data.valorTotal;
           this.valorDevendo = response.data.valorDevendo;
           this.compras = response.data.result.data;
+          this.totalItems = response.data.result.total;
         });
     },
     deletarVenda(item) {
